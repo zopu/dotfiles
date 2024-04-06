@@ -10,6 +10,7 @@ export PATH="/Users/mikeperrow/bin:$PATH"
 alias nv="env TERM=wezterm nvim"
 alias adv="cargo run --release --"
 alias tgs="tm-git-worktree-session.sh"
+alias lg="lazygit"
 
 # opam configuration
 [[ ! -r /Users/mikeperrow/.opam/opam-init/init.zsh ]] || source /Users/mikeperrow/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
