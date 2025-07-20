@@ -1,19 +1,23 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-  -- bootstrap lazy.nvim
-  -- stylua: ignore
-  vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out, "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
 end
-vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
+vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-    -- import any extras modules here
-    -- { import = "lazyvim.plugins.extras.lang.typescript" },
-    -- { import = "lazyvim.plugins.extras.lang.json" },
-    -- { import = "lazyvim.plugins.extras.ui.mini-animate" },
     -- import/override with your plugins
     { import = "plugins" },
   },
@@ -27,7 +31,10 @@ require("lazy").setup({
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
   install = { colorscheme = { "tokyonight", "habamax" } },
-  checker = { enabled = true }, -- automatically check for plugin updates
+  checker = {
+    enabled = true, -- check for plugin updates periodically
+    notify = false, -- notify on update
+  }, -- automatically check for plugin updates
   performance = {
     rtp = {
       -- disable some rtp plugins
@@ -43,42 +50,4 @@ require("lazy").setup({
       },
     },
   },
-})
-
-require("dap").configurations.go = {
-  {
-    name = "Debug N4J Import",
-    type = "delve",
-    request = "launch",
-    program = "${workspaceFolder}/cmd/import/import.go",
-    dlvToolPath = vim.fn.exepath("dlv"), -- Adjust this path if necessary
-  },
-  {
-    name = "Debug API Server",
-    type = "delve",
-    request = "launch",
-    program = "${workspaceFolder}/cmd/api/api.go",
-    dlvToolPath = vim.fn.exepath("dlv"), -- Adjust this path if necessary
-  },
-}
-
-local luasnip = require("luasnip")
-local s, sn = luasnip.snippet, luasnip.snippet_node
-local t, i, d = luasnip.text_node, luasnip.insert_node, luasnip.dynamic_node
-
-local function uuid()
-  local id, _ = vim.fn.system("uuidgen"):gsub("\n", "")
-  return id
-end
-
-luasnip.add_snippets("global", {
-  s({
-    trig = "uuid",
-    name = "UUID",
-    dscr = "Generate a unique UUID",
-  }, {
-    d(1, function()
-      return sn(nil, i(1, uuid()))
-    end),
-  }),
 })

@@ -11,6 +11,9 @@ if ! git rev-parse --is-inside-git-dir >/dev/null 2>&1; then
 	exit 1
 fi
 
+# Get the repository name from remote origin URL
+REPONAME=$(git config --get remote.origin.url | sed 's/.*\/\([^ ]*\/[^.]*\).*/\1/' | sed 's/.*\///')
+
 # Check if the repository is bare
 if [ ! "$(git rev-parse --is-bare-repository)" = "true" ]; then
 	# Check the parent dir
@@ -20,6 +23,9 @@ if [ ! "$(git rev-parse --is-bare-repository)" = "true" ]; then
 		exit 1
 	fi
 fi
+
+# Create session name format
+SESSION_NAME="$REPONAME-$BRANCH"
 
 echo "creating worktree $BRANCH"
 #
@@ -36,22 +42,22 @@ fi
 cd $BRANCH
 
 # Now start a tmux session
-if tmux list-sessions | grep -q "^$BRANCH:"; then
-	echo "Session $BRANCH already exists."
+if tmux list-sessions | grep -q "^$SESSION_NAME:"; then
+	echo "Session $SESSION_NAME already exists."
 else
-	echo "Creating session $BRANCH"
-	tmux new-session -d -s $BRANCH
-	tmux new-window -t $BRANCH:2 -n 'nv'
-	tmux send-keys -t $BRANCH:2 "nv ." C-m
-	tmux new-window -t $BRANCH:3 -n 'run'
+	echo "Creating session $SESSION_NAME"
+	tmux new-session -d -s $SESSION_NAME
+	tmux new-window -t $SESSION_NAME:2 -n 'nv'
+	tmux send-keys -t $SESSION_NAME:2 "nv ." C-m
+	tmux new-window -t $SESSION_NAME:3 -n 'run'
 fi
 
-echo "Switching to session $BRANCH"
+echo "Switching to session $SESSION_NAME"
 
 # Switch to the session
 if [ -n "$TMUX" ]; then
-	tmux switch-client -t "$BRANCH:2"
+	tmux switch-client -t "$SESSION_NAME:2"
 else
 	# If not inside tmux, attach to the target session (or switch to it if already attached elsewhere)
-	tmux attach-session -t "$BRANCH:2" || tmux switch-client -t "$BRANCH:2"
+	tmux attach-session -t "$SESSION_NAME:2" || tmux switch-client -t "$SESSION_NAME:2"
 fi

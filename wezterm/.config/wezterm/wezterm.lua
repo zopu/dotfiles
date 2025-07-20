@@ -40,5 +40,9 @@ local bg = {
 
 -- config.background = {bg}
 
+config.keys = {
+	-- { key = "Enter", mods = "ALT", action = wezterm.action.DisableDefaultAssignment },
+}
+
 -- and finally, return the configuration to wezterm
 return config

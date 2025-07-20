@@ -1,5 +1,4 @@
 return {
-  -- disable trouble
+  -- Disable tabs since we're using incline/navic
   { "akinsho/bufferline.nvim", enabled = false },
-  -- { "simrat39/rust-tools.nvim", enabled = false },
 }
