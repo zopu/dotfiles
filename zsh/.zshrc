@@ -10,6 +10,7 @@ eval $(thefuck --alias)
 alias nv="env TERM=wezterm nvim"
 alias tgs="tm-git-worktree-session.sh"
 alias lg="lazygit"
+alias lzd='lazydocker'
 alias fk="fuck"
 
 # opam configuration
