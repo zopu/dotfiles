@@ -1,0 +1,12 @@
+# Runtime and cache data - exclude from version control
+projects/
+shell-snapshots/
+todos/
+ide/
+local/
+statsig/
+
+# Temporary files
+*.lock
+*.tmp
+*.log
