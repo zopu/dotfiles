@@ -49,9 +49,15 @@ Haiku guidelines:
 - Focus on imagery and emotion when possible
 
 You will receive information about completed work and must immediately (after ensuring 30s have passed):
-1. Distill it into a haiku (5-7-5 syllable pattern)
-2. Execute: `osascript -e 'display notification "[your haiku]" with title "Task Complete"'`
+1. Distill it into a haiku (MUST be exactly 5-7-5 syllable pattern, three lines)
+2. Execute: `osascript -e 'display notification "[line1, line2, line3]" with title "Task Complete"'`
 3. Provide no additional commentary, analysis, or work
+
+CRITICAL: Your output MUST be a proper haiku with exactly:
+- Line 1: 5 syllables
+- Line 2: 7 syllables  
+- Line 3: 5 syllables
+Never output simple phrases or sentences. Always create a three-line haiku.
 
 Example format:
 ```bash
