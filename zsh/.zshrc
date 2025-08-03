@@ -1,7 +1,12 @@
 export XDG_CONFIG_HOME="$HOME/.config"
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# Lazy load nvm for faster shell startup
+nvm() {
+    unset -f nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+    nvm "$@"
+}
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 export PATH="/opt/homebrew/opt/python@3.11/libexec/bin:$PATH"
 export PATH="/Users/mikeperrow/bin:$PATH"
@@ -35,19 +40,23 @@ export PATH="$PATH:/Users/mikeperrow/.local/bin"
 # export PATH="/opt/homebrew/anaconda3/bin:$PATH"  # commented out by conda initialize
 
 # >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/opt/homebrew/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-/opt/homebrew/anaconda3/bin/conda config --set changeps1 False
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/opt/homebrew/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/opt/homebrew/anaconda3/etc/profile.d/conda.sh"
+# Lazy load conda for faster shell startup
+conda() {
+    unset -f conda
+    __conda_setup="$('/opt/homebrew/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
     else
-        export PATH="/opt/homebrew/anaconda3/bin:$PATH"
+        if [ -f "/opt/homebrew/anaconda3/etc/profile.d/conda.sh" ]; then
+            . "/opt/homebrew/anaconda3/etc/profile.d/conda.sh"
+        else
+            export PATH="/opt/homebrew/anaconda3/bin:$PATH"
+        fi
     fi
-fi
-unset __conda_setup
+    unset __conda_setup
+    /opt/homebrew/anaconda3/bin/conda config --set changeps1 False
+    conda "$@"
+}
 # <<< conda initialize <<<
 
 alias claude="/Users/mikeperrow/.claude/local/claude"
