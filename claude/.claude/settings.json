@@ -23,6 +23,7 @@
       "Bash(make build)",
       "Bash(nc:*)",
       "Bash(npm test:*)",
+      "Bash(osascript:*)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm build:*)",
       "Bash(rg:*)",
@@ -66,6 +67,6 @@
     ]
   },
   "feedbackSurveyState": {
-    "lastShownTime": 1754080393383
+    "lastShownTime": 1754086230997
   }
 }
