@@ -64,5 +64,25 @@ This is a personal dotfiles repository for macOS development environment configu
 - Modular plugin structure (many plugins recently removed/disabled)
 - Custom keymaps, options, and autocmds in lua/config/
 
+## Claude Code Agents
+
+This repository includes specialized Claude Code agents for research and development tasks:
+
+### Research Team Agents
+- **Tech Research Lead** - Coordinates research activities and validates team outputs
+- **Tech Researcher** - Conducts comprehensive technical research and documentation
+- **Tech Research Librarian** - Maintains documentation library organization and integrity
+
+### Agent Configuration
+Agent definitions are located in `claude/.claude/agents/` and follow established collaboration patterns for multi-agent workflows.
+
+### Research Documentation
+Technical research documentation is maintained in `agents/tech-research/` with:
+- Main research files using descriptive, topic-based naming
+- Technology-specific documentation in `agents/tech-research/docs/` following `{technology}{version}.md` format
+- Comprehensive Claude Code agents implementation guide at `agents/tech-research/docs/claudecode2025.md`
+
+For detailed implementation guidance, see the [Claude Code Agents Documentation](agents/tech-research/docs/claudecode2025.md).
+
 ## Installation Pattern
 This repository follows GNU Stow conventions where each top-level directory represents a "package" that can be symlinked into the home directory structure using `stow <package-name>`.
