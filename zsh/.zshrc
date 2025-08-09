@@ -10,8 +10,12 @@ nvm() {
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 export PATH="/opt/homebrew/opt/python@3.11/libexec/bin:$PATH"
 export PATH="/Users/mikeperrow/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
-eval $(thefuck --alias)
+# Guard optional tools
+if command -v thefuck >/dev/null 2>&1; then
+  eval "$(thefuck --alias)"
+fi
 alias nv="env TERM=wezterm nvim"
 alias tgs="tm-git-worktree-session.sh"
 alias lg="lazygit"
@@ -21,12 +25,14 @@ alias fk="fuck"
 # opam configuration
 [[ ! -r /Users/mikeperrow/.opam/opam-init/init.zsh ]] || source /Users/mikeperrow/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
 
-eval "$(starship init zsh)"
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
 
 # bun completions
-[ -s "/Users/mikeperrow/.bun/_bun" ] && source "/Users/mikeperrow/.bun/_bun"
+[[ -s "/Users/mikeperrow/.bun/_bun" ]] && source "/Users/mikeperrow/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
@@ -54,7 +60,7 @@ conda() {
         fi
     fi
     unset __conda_setup
-    /opt/homebrew/anaconda3/bin/conda config --set changeps1 False
+    # Prefer setting changeps1: false in ~/.condarc to avoid per-shell config calls
     conda "$@"
 }
 # <<< conda initialize <<<

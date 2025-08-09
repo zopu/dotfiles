@@ -1,10 +1,7 @@
 # Homebrew Bundle for macOS dev environment
 # Install with: brew bundle
 
-# Taps
-tap "homebrew/bundle"
-tap "homebrew/cask"
-tap "homebrew/cask-fonts"
+# Taps (only non-default)
 tap "oven-sh/bun"
 
 # Core CLI
@@ -22,7 +19,7 @@ brew "jq"
 brew "python@3.11"
 brew "go"
 brew "nvm"
-brew "bun"
+brew "oven-sh/bun/bun"
 brew "libpq"
 
 # Editor/tooling integrations
