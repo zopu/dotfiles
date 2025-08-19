@@ -51,6 +51,7 @@ PACKAGES=(
   ghostty
   kanata
   conda
+  opencode
 )
 
 for pkg in "${PACKAGES[@]}"; do
