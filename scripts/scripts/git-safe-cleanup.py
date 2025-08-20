@@ -1,11 +1,19 @@
 import subprocess
 import json
 import os
+import sys
 
-GITHUB_REPO = "spectinga/new-api"
+def get_config():
+    """Get repo and user from command line args"""
+    if len(sys.argv) != 3:
+        print("Usage: python git-safe-cleanup.py <repo> <username>")
+        print("Example: python git-safe-cleanup.py owner/repo-name username")
+        sys.exit(1)
+    
+    return sys.argv[1], sys.argv[2]
 
 
-def get_merged_branches():
+def get_merged_branches(github_repo, github_user):
     try:
         result = subprocess.run(
             [
@@ -13,13 +21,13 @@ def get_merged_branches():
                 "pr",
                 "list",
                 "--repo",
-                GITHUB_REPO,
+                github_repo,
                 "--state",
                 "closed",
                 "-L",
                 "500",
                 "-A",
-                "zopu",
+                github_user,
                 "--json",
                 "headRefName,mergedAt",
             ],
@@ -92,7 +100,8 @@ def delete_worktree(branch):
         print(f"Failed to delete worktree {branch}: {e}")
 
 
-mb = get_merged_branches()
+github_repo, github_user = get_config()
+mb = get_merged_branches(github_repo, github_user)
 branches = get_git_branch_names()
 folders = get_folder_names()
 

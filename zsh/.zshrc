@@ -9,7 +9,7 @@ nvm() {
 }
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 export PATH="/opt/homebrew/opt/python@3.11/libexec/bin:$PATH"
-export PATH="/Users/mikeperrow/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 
 # Guard optional tools
@@ -23,7 +23,7 @@ alias lzd='lazydocker'
 alias fk="fuck"
 
 # opam configuration
-[[ ! -r /Users/mikeperrow/.opam/opam-init/init.zsh ]] || source /Users/mikeperrow/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
+[[ ! -r $HOME/.opam/opam-init/init.zsh ]] || source $HOME/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
 
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
@@ -32,7 +32,7 @@ fi
 [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
 
 # bun completions
-[[ -s "/Users/mikeperrow/.bun/_bun" ]] && source "/Users/mikeperrow/.bun/_bun"
+[[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
@@ -42,7 +42,7 @@ export PATH="$HOME/go/bin:$PATH"
 export PATH="$HOME/scripts:$PATH"
 
 # Created by `pipx` on 2024-03-06 17:18:01
-export PATH="$PATH:/Users/mikeperrow/.local/bin"
+export PATH="$PATH:$HOME/.local/bin"
 # export PATH="/opt/homebrew/anaconda3/bin:$PATH"  # commented out by conda initialize
 
 # >>> conda initialize >>>
@@ -65,4 +65,4 @@ conda() {
 }
 # <<< conda initialize <<<
 
-alias claude="/Users/mikeperrow/.claude/local/claude"
+alias claude="$HOME/.claude/local/claude"

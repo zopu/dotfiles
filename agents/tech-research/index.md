@@ -35,7 +35,7 @@ Additional technology documentation files are created as research requirements d
 
 ## Agent Configuration Files
 
-Agent definitions are stored in `/Users/mikeperrow/dotfiles/claude/.claude/agents/`:
+Agent definitions are stored in `../claude/.claude/agents/`:
 
 - **[tech-research-lead.md](../claude/.claude/agents/tech-research-lead.md)** - Orchestrator agent for research coordination
 - **[tech-researcher.md](../claude/.claude/agents/tech-researcher.md)** - Specialized research and documentation agent  
