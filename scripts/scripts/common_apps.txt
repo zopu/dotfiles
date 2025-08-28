@@ -1,0 +1,6 @@
+git lazygit
+docker lazydocker
+dotfiles nvim ~/dotfiles/
+todo nvim ~/todo.txt
+claude ~/.claude/local/claude
+neovim nvim .
