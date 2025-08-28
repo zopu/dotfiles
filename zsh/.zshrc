@@ -21,6 +21,7 @@ alias tgs="tm-git-worktree-session.sh"
 alias lg="lazygit"
 alias lzd='lazydocker'
 alias fk="fuck"
+alias t="tmux a"
 
 # opam configuration
 [[ ! -r $HOME/.opam/opam-init/init.zsh ]] || source $HOME/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
