@@ -102,6 +102,7 @@ brew "browsh-org/browsh/browsh"
 brew "clojure/tools/clojure"
 brew "dart-lang/dart/dart"
 brew "FelixKratz/formulae/borders"
+brew "FelixKratz/formulae/sketchybar"
 brew "jesseduffield/lazydocker/lazydocker"
 brew "localstack/tap/localstack-cli"
 brew "oven-sh/bun/bun"
@@ -125,6 +126,7 @@ cask "alacritty"      # Alternative terminal
 cask "anaconda"       # Python distribution
 cask "font-jetbrains-mono-nerd-font"
 cask "font-sf-mono-nerd-font"
+cask "font-hack-nerd-font"
 cask "ghostty"        # Terminal emulator
 cask "machoview"      # Mach-O binary viewer
 cask "temurin@17"     # Java 17 JDK
