@@ -127,6 +127,7 @@ cask "anaconda"       # Python distribution
 cask "font-jetbrains-mono-nerd-font"
 cask "font-sf-mono-nerd-font"
 cask "font-hack-nerd-font"
+cask "sf-symbols"     # Apple Symbols
 cask "ghostty"        # Terminal emulator
 cask "machoview"      # Mach-O binary viewer
 cask "temurin@17"     # Java 17 JDK
