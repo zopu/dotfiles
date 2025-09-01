@@ -4,7 +4,7 @@
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 
 export WHITE=0xffffffff
-export BAR_COLOR=0xcc101314
+export BAR_COLOR=0xdd101314
 export ITEM_BG_COLOR=0xff353c3f
 export ACCENT_COLOR=0xffffffff
 
@@ -18,8 +18,8 @@ sketchybar --bar position=top \
 default=(
   padding_left=5
   padding_right=5
-  icon.font="SFMono Nerd Font:Semibold:16.0"
-  label.font="SFMono Nerd Font:Semibold:14.0"
+  icon.font="SFPro:Normal:14.0"
+  label.font="SFPro:Normal:14.0"
   icon.color=$WHITE
   label.color=$WHITE
   icon.padding_left=4
@@ -52,13 +52,13 @@ for sid in $(aerospace list-workspaces --all 2>/dev/null || echo "1 2 3 4 5 6 7 
     click_script="aerospace workspace $sid"
   )
   sketchybar --add item space."$sid" left \
-             --subscribe space."$sid" aerospace_workspace_change \
+             --subscribe space."$sid" aerospace_workspace_change front_app_switched space_windows_change \
              --set space."$sid" "${space[@]}"
 done
 
 ##### Adding Left Items #####
 sketchybar --add item front_app left \
-           --set front_app icon.drawing=off script="$PLUGIN_DIR/front_app.sh" \
+           --set front_app icon.drawing=off label.font="SFPro:Bold:16.0" script="$PLUGIN_DIR/front_app.sh" \
            --subscribe front_app front_app_switched
 
 ##### Adding Right Items #####
