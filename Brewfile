@@ -127,13 +127,14 @@ cask "anaconda"       # Python distribution
 cask "font-jetbrains-mono-nerd-font"
 cask "font-sf-mono-nerd-font"
 cask "font-hack-nerd-font"
+cask "mediosz/tap/swipeaerospace"
 cask "sf-symbols"     # Apple Symbols
-cask "ghostty"        # Terminal emulator
+cask "ghostty@tip"        # Terminal emulator
 cask "machoview"      # Mach-O binary viewer
 cask "temurin@17"     # Java 17 JDK
 cask "wezterm"        # Terminal emulator
 cask "xld"            # Audio converter
- 
+
 # Post-install tips (not executed by Brewfile):
 # - fzf: $(brew --prefix)/opt/fzf/install for key-bindings/completions
 # - nvm: ensure NVM_DIR and lazy-load in zsh
