@@ -433,6 +433,9 @@ function icon_map() {
   "Comet")
     icon_result=":safari:"
     ;;
+  "Cursor")
+    icon_result=":cursor:"
+    ;;
   "Ghostty")
     icon_result=":ghostty:"
     ;;
