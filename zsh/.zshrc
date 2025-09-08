@@ -7,6 +7,16 @@ nvm() {
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
     nvm "$@"
 }
+
+# Make default node available immediately while keeping lazy loading benefits
+if [ -s "$NVM_DIR/nvm.sh" ] && [ -d "$NVM_DIR/versions/node" ]; then
+    # Find the latest installed node version
+    LATEST_NODE=$(ls -1 "$NVM_DIR/versions/node" | sort -V | tail -n 1)
+    if [ -n "$LATEST_NODE" ] && [ -d "$NVM_DIR/versions/node/$LATEST_NODE" ]; then
+        export PATH="$NVM_DIR/versions/node/$LATEST_NODE/bin:$PATH"
+    fi
+fi
+
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
 export PATH="/opt/homebrew/opt/python@3.11/libexec/bin:$PATH"
 export PATH="$HOME/bin:$PATH"
