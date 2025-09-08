@@ -53,8 +53,8 @@ inner.horizontal = 10
 inner.vertical = 10
 outer.left = 0
 outer.bottom = 0
-outer.top = 0
 outer.right = 0
+outer.top = [{ monitor."built-in" = 0 }, { monitor."main" = 32 }, 32]
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -83,6 +83,8 @@ outer.right = 0
 # See: https://nikitabobko.github.io/AeroSpace/commands#layout
 alt-slash = 'layout tiles horizontal vertical'
 alt-comma = 'layout accordion horizontal vertical'
+
+alt-f = 'fullscreen'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#focus
 alt-h = 'focus left'
