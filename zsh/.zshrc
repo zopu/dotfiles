@@ -77,3 +77,6 @@ conda() {
 # <<< conda initialize <<<
 
 alias claude="$HOME/.claude/local/claude"
+
+export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense'
+source <(carapace _carapace)

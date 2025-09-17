@@ -21,6 +21,7 @@ tap "twilio/brew"
 brew "act"
 brew "awscli"
 brew "bat"            # Better cat with syntax highlighting
+brew "carapace"
 brew "cfn-lint"
 brew "claude-squad"
 brew "cloudflared"
