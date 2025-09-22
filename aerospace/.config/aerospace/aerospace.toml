@@ -10,7 +10,7 @@ after-login-command = []
 # 'after-startup-command' is run after 'after-login-command'
 # Available commands: https://nikitabobko.github.io/AeroSpace/commands
 after-startup-command = [
-  'exec-and-forget borders active_color=0xffff9900 width=3.0',
+  'exec-and-forget borders active_color=0xffff9900 width=4.0',
   'exec-and-forget brew services restart sketchybar',
 ]
 
