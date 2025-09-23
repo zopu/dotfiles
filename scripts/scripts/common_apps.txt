@@ -6,3 +6,4 @@ todo nvim ~/todo.txt
 claude ~/.claude/local/claude
 neovim nvim . && exec zsh
 nu nu
+yazi yazi-tmux-wrapper.sh

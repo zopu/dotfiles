@@ -93,6 +93,7 @@ brew "wakeonlan"
 brew "websocat"
 brew "wget"
 brew "yamllint"       # YAML linting
+brew "yazi"
 brew "z80asm"
 brew "zellij"
 brew "zig"

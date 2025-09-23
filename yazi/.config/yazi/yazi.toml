@@ -1,0 +1,68 @@
+"$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
+
+[mgr]
+ratio = [1, 4, 3]
+sort_by = "alphabetical"
+sort_sensitive = true
+sort_reverse = false
+sort_dir_first = true
+linemode = "none"
+show_hidden = false
+show_symlink = true
+scrolloff = 5
+
+[preview]
+tab_size = 2
+max_width = 600
+max_height = 900
+cache_dir = ""
+image_filter = "triangle"
+image_quality = 75
+sixel_fraction = 15
+
+[opener]
+edit = [
+	{ run = 'nvim "$@"', desc = "Edit", block = true, for = "unix" },
+]
+open = [
+	{ run = 'open "$@"', desc = "Open", for = "macos" },
+]
+reveal = [
+	{ run = 'open -R "$@"', desc = "Reveal", for = "macos" },
+]
+extract = [
+	{ run = 'unar "$1"', desc = "Extract here", for = "unix" },
+]
+play = [
+	{ run = 'mpv "$@"', desc = "Play", orphan = true, for = "unix" },
+]
+
+[open]
+rules = [
+	{ name = "*/", use = "open" },
+	{ mime = "text/*", use = "edit" },
+	{ mime = "image/*", use = "open" },
+	{ mime = "video/*", use = "play" },
+	{ mime = "audio/*", use = "play" },
+	{ mime = "inode/x-empty", use = "edit" },
+	{ mime = "application/json", use = "edit" },
+	{ mime = "*/javascript", use = "edit" },
+	{ mime = "*/x-wine-extension-ini", use = "edit" },
+	{ mime = "application/zip", use = "extract" },
+	{ mime = "application/gzip", use = "extract" },
+	{ mime = "application/x-tar", use = "extract" },
+	{ mime = "application/x-bzip2", use = "extract" },
+	{ mime = "application/x-7z-compressed", use = "extract" },
+	{ mime = "application/x-rar", use = "extract" },
+	{ mime = "*", use = "open" },
+]
+
+[plugin]
+
+[input]
+
+[confirm]
+
+[pick]
+
+[which]
