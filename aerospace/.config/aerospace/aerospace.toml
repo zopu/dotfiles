@@ -44,8 +44,8 @@ default-root-container-orientation = 'auto'
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 key-mapping.preset = 'qwerty'
 
-# Mouse follows focus when switching workspaces
-on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+# Mouse follows focus when switching windows 
+on-focus-changed = ['move-mouse window-lazy-center']
 
 # Gaps between windows (inner-*) and between monitor edges and windows (outer-*)
 [gaps]
