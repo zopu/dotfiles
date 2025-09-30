@@ -89,4 +89,4 @@ function y() {
   rm -f -- "$tmp"
 }
 
-eval "$(zoxide init zsh)"
+eval "$(zoxide init --cmd cd zsh)"
