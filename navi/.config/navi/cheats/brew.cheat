@@ -1,0 +1,22 @@
+% brew, homebrew, package manager
+
+# Upgrade all packages in Brewfile
+brew bundle --file=~/dotfiles/Brewfile
+
+# Install new additions from Brewfile
+brew bundle install --file=~/dotfiles/Brewfile
+
+# Update Homebrew and upgrade all installed packages
+brew update && brew upgrade
+
+# Clean up old versions and cache
+brew cleanup
+
+# Check Brewfile for issues
+brew bundle check --file=~/dotfiles/Brewfile
+
+# Generate Brewfile from currently installed packages
+brew bundle dump --file=~/dotfiles/Brewfile --force
+
+# List outdated packages
+brew outdated

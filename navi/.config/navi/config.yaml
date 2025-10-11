@@ -1,0 +1,36 @@
+# Navi Configuration
+# Documentation: https://github.com/denisidoro/navi
+
+# Cheatsheet paths
+# Navi will search these directories for .cheat files
+cheats:
+  paths:
+    # Custom cheats in dotfiles
+    - ~/.config/navi/cheats
+    # Default navi cheats location
+    - ~/.local/share/navi/cheats
+
+# Finder options
+# finder:
+#   # Finder command: fzf (default), skim
+#   command: fzf
+#   # Override fzf options
+#   # overrides: --height 50%
+
+# Shell integration
+# shell:
+#   # Shell command to use: bash, zsh, fish
+#   command: zsh
+
+# Search options
+# search:
+#   # Enable case-insensitive search
+#   case_insensitive: true
+
+# Style options
+# style:
+#   # Color scheme: monokai, base16, ...
+#   # tag:
+#   #   color: cyan
+#   # comment:
+#   #   color: blue

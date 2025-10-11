@@ -4,6 +4,7 @@ docker lazydocker
 dotfiles nvim ~/dotfiles/
 todo nvim ~/todo.txt
 claude ~/.claude/local/claude
+navi zsh -c 'navi; exec zsh'
 neovim nvim . && exec zsh
 nu nu
 yazi yazi-tmux-wrapper.sh
