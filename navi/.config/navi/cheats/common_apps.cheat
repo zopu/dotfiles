@@ -1,0 +1,49 @@
+% shell 
+
+# New zsh session
+zsh
+
+% docker
+
+# LazyDocker
+lazydocker
+
+% git, lazygit, lg
+
+# LazyGit
+lazygit
+
+% dotfiles
+
+# Neovim dotfiles
+nvim ~/dotfiles/
+
+% ToDo
+
+# Todo
+nvim ~/todo.txt
+
+% Claude
+
+# Claude
+~/.claude/local/claude
+
+% Navi
+
+# Navi
+zsh -c 'navi; exec zsh'
+
+% Neovim, nv, nvim
+
+# Neovim
+nvim . && exec zsh
+
+% Nushell
+
+# Nushell
+nu
+
+% Yazi
+
+# Yazi
+yazi-tmux-wrapper.sh
