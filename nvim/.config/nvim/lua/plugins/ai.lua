@@ -1,13 +1,16 @@
 local claude_toggle_key = "<C-,>"
 return {
   {
-    "monkoose/neocodeium",
-    event = "VeryLazy",
-    config = function()
-      local neocodeium = require("neocodeium")
-      neocodeium.setup()
-      vim.keymap.set("i", "<C-i>", neocodeium.accept)
-    end,
+    "folke/sidekick.nvim",
+    opts = {
+      cli = {
+        tools = {
+          claude = {
+            cmd = { vim.fn.expand("~/.claude/local/claude") },
+          },
+        },
+      },
+    },
   },
   {
     "coder/claudecode.nvim",
