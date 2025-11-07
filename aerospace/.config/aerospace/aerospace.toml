@@ -152,23 +152,27 @@ alt-shift-l = ['join-with right', 'mode main']
 
 # App-specific workspace assignments
 [[on-window-detected]]
-if.app-id = 'com.apple.finder'
+if.app-id = 'com.github.wez.wezterm'
 run = 'move-node-to-workspace 1'
 
 [[on-window-detected]]
-if.app-id = 'com.microsoft.VSCode'
-run = 'move-node-to-workspace 2'
+if.app-id = 'com.github.mitchellh.ghostty'
+run = 'move-node-to-workspace 1'
 
 [[on-window-detected]]
-if.app-id = 'com.github.wez.wezterm'
+if.app-id = 'net.whatsapp.WhatsApp'
 run = 'move-node-to-workspace 3'
 
 [[on-window-detected]]
-if.app-id = 'com.apple.Safari'
+if.app-id = 'com.apple.MobileSMS'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
 run = 'move-node-to-workspace 4'
 
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome'
+if.app-id = 'com.openai.chat'
 run = 'move-node-to-workspace 4'
 
 [[on-window-detected]]
@@ -176,17 +180,9 @@ if.app-id = 'com.spotify.client'
 run = 'move-node-to-workspace 5'
 
 [[on-window-detected]]
-if.app-id = 'com.apple.mail'
-run = 'move-node-to-workspace 6'
-
-[[on-window-detected]]
-if.app-id = 'com.apple.iCal'
-run = 'move-node-to-workspace 6'
-
-[[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace 7'
 
 [[on-window-detected]]
-if.app-id = 'us.zoom.xos'
+if.app-id = 'com.valvesoftware.steam'
 run = 'move-node-to-workspace 8'
