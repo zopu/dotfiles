@@ -90,6 +90,7 @@ brew "tokei"          # Code statistics
 brew "tpm"
 brew "tree"           # Directory tree visualization
 brew "wakeonlan"
+brew "watchexec"
 brew "websocat"
 brew "wget"
 brew "yamllint"       # YAML linting
