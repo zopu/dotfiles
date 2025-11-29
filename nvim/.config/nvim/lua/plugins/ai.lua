@@ -10,6 +10,12 @@ return {
           },
         },
       },
+      nes = {
+        enabled = function(buf)
+          local ft = vim.bo[buf].filetype
+          return ft ~= "neotodo"
+        end,
+      },
     },
   },
   {

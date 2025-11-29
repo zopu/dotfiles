@@ -13,3 +13,10 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.bo.commentstring = "// %s"
   end,
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "neotodo",
+  callback = function()
+    vim.b.sidekick_nes = false
+  end,
+})
