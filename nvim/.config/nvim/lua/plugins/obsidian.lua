@@ -1,20 +1,19 @@
 return {
-  "epwalsh/obsidian.nvim",
+  "obsidian-nvim/obsidian.nvim",
   version = "*",
-  lazy = true,
   ft = "markdown",
-  dependencies = {
-    "nvim-lua/plenary.nvim",
-  },
+  ---@module 'obsidian'
+  ---@type obsidian.config
   opts = {
+    legacy_commands = false,
     workspaces = {
       {
         name = "personal",
-        path = "~/vaults/personal",
+        path = vim.fn.expand("~") .. "/vaults/personal",
       },
       {
-        name = "work",
-        path = "~/vaults/Ivi",
+        name = "Ivi",
+        path = vim.fn.expand("~") .. "/vaults/Ivi",
       },
     },
   },
