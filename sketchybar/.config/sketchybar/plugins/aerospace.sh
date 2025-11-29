@@ -12,7 +12,7 @@ if [ "$SENDER" = "aerospace_workspace_change" ]; then
 fi
 
 workspace="$(echo $NAME | cut -d '.' -f 2)"
-apps="$(aerospace list-windows --workspace $workspace | cut -d '|' -f 2)"
+apps="$(aerospace list-windows --workspace $workspace | cut -d '|' -f 2 | sort -u)"
 space="$(echo "$INFO" | jq -r '.space')"
 # apps="$(echo "$INFO" | jq -r '.apps | keys[]')"
 if [ "${apps}" != "" ]; then
