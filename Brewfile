@@ -22,6 +22,7 @@ brew "act"
 brew "awscli"
 brew "bat"            # Better cat with syntax highlighting
 brew "carapace"
+brew "ccache"        # Compiler cache for faster rebuilds
 brew "cfn-lint"
 brew "claude-squad"
 brew "cloudflared"
@@ -31,6 +32,7 @@ brew "curl"
 brew "deno"           # JavaScript/TypeScript runtime
 brew "direnv"
 brew "docker"         # Container platform
+brew "dtc"            # Device Tree Compiler
 brew "dust"           # Better du (disk usage)
 brew "editorconfig-checker"  # EditorConfig compliance
 brew "eza"            # Better ls with colors and icons
@@ -43,6 +45,7 @@ brew "git-delta"      # Better git diff viewer
 brew "gitleaks"
 brew "go"
 brew "golangci-lint"
+brew "gperf"          # Perfect hash function generator
 brew "gopls"
 brew "helix"
 brew "htop"
@@ -54,6 +57,7 @@ brew "k6"
 brew "kanata"
 brew "ko"
 brew "lazygit"
+brew "libmagic"       # File type detection library
 brew "libpq"
 brew "mkcert"
 brew "mold"
@@ -62,13 +66,16 @@ brew "mysql-client"
 brew "nasm"
 brew "navi"
 brew "neovim"
+brew "ninja"          # Small build system
 brew "nvm"
 brew "pipx"           # Python app isolation
+brew "openocd"        # On-chip debugger
 brew "pnpm"
 brew "poetry"         # Python dependency management
 brew "pre-commit"
 brew "python@3.10"
 brew "python@3.11"
+brew "python-tk@3.11" # Tkinter for Python
 brew "qemu"
 brew "railway"
 brew "ripgrep"
