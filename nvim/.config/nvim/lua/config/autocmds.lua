@@ -20,3 +20,14 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.b.sidekick_nes = false
   end,
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function()
+    -- Defer to run after lazy-loaded plugins (like obsidian.nvim) finish loading
+    vim.schedule(function()
+      vim.opt_local.wrap = true
+      vim.opt_local.linebreak = true
+    end)
+  end,
+})
