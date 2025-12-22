@@ -439,6 +439,9 @@ function icon_map() {
   "Ghostty")
     icon_result=":ghostty:"
     ;;
+  "Granola")
+    icon_result=":granola:"
+    ;;
   "Steam" | "Steam Helper")
     icon_result=":steam:"
     ;;

@@ -138,6 +138,7 @@ cask "anaconda"       # Python distribution
 cask "font-jetbrains-mono-nerd-font"
 cask "font-sf-mono-nerd-font"
 cask "font-hack-nerd-font"
+cask "font-sketchybar-app-font"
 cask "mediosz/tap/swipeaerospace"
 cask "sf-symbols"     # Apple Symbols
 cask "ghostty@tip"        # Terminal emulator
