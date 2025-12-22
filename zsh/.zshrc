@@ -26,7 +26,7 @@ export PATH="$HOME/.local/bin:$PATH"
 if command -v thefuck >/dev/null 2>&1; then
   eval "$(thefuck --alias)"
 fi
-alias nv="env TERM=wezterm nvim"
+alias nv="nvim"
 alias tgs="tm-git-worktree-session.sh"
 alias lg="lazygit"
 alias lzd='lazydocker'
