@@ -89,4 +89,8 @@ function y() {
   rm -f -- "$tmp"
 }
 
-eval "$(zoxide init --cmd cd zsh)"
+if [[ -o interactive ]]; then
+    eval "$(zoxide init --cmd cd zsh)"
+else
+    eval "$(zoxide init zsh)"
+fi
