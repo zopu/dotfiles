@@ -41,7 +41,6 @@
       "WebFetch(domain:*)"
     ]
   },
-  "model": "opusplan",
   "hooks": {
     "Stop": [
       {
@@ -66,6 +65,10 @@
       }
     ]
   },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true
+  },
+  "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
     "lastShownTime": 1754086230997
   }
