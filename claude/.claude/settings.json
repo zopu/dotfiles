@@ -28,6 +28,7 @@
       "Bash(pnpm build:*)",
       "Bash(rg:*)",
       "Bash(templ generate:*)",
+      "Bash(~/.claude/skills/pr-response/gh-reply-pr-comment.sh:*)",
       "mcp__context7__get-library-docs",
       "mcp__context7__resolve-library-id",
       "mcp__playwright__playwright_get_visible_text",
@@ -66,7 +67,8 @@
     ]
   },
   "enabledPlugins": {
-    "clangd-lsp@claude-plugins-official": true
+    "clangd-lsp@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
