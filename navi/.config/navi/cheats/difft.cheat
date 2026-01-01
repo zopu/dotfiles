@@ -1,0 +1,7 @@
+% difftastic, diff
+
+# Difftastic staged git files
+git -c diff.external=difft diff --staged
+
+# Difftastic working directory git files
+git -c diff.external=difft diff
