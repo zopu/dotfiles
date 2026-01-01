@@ -94,3 +94,6 @@ if [[ -o interactive ]]; then
 else
     eval "$(zoxide init zsh)"
 fi
+
+# Navi widget
+eval "$(navi widget zsh)"
