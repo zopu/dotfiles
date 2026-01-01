@@ -30,6 +30,7 @@ brew "cmake"
 brew "coreutils"
 brew "curl"
 brew "deno"           # JavaScript/TypeScript runtime
+brew "difftastic"
 brew "direnv"
 brew "docker"         # Container platform
 brew "dtc"            # Device Tree Compiler
