@@ -56,6 +56,13 @@ else
   fi
 
   git worktree add -b "$BRANCH" "$WORKTREE_PATH" main
+
+  # Symlink Claude local settings from main repo to new worktree
+  if [ -f "$MAIN_PATH/.claude/settings.local.json" ]; then
+    echo "Symlinking Claude local settings..."
+    mkdir -p "$WORKTREE_PATH/.claude"
+    ln -s "$MAIN_PATH/.claude/settings.local.json" "$WORKTREE_PATH/.claude/settings.local.json"
+  fi
 fi
 
 cd "$WORKTREE_PATH"
