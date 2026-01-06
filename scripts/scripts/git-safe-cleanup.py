@@ -73,6 +73,32 @@ def get_folder_names():
         return []
 
 
+def has_changes_vs_main(branch):
+    """Check if a branch has any changes compared to main."""
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--quiet", "main..." + branch],
+            capture_output=True,
+        )
+        # Exit code 0 means no diff (identical to main)
+        return result.returncode != 0
+    except subprocess.CalledProcessError:
+        return True  # Assume changes if we can't check
+
+
+def get_branches_with_no_changes(branches, merged_branch_names):
+    """Find branches that have no changes vs main and aren't already in merged list."""
+    no_change_branches = []
+    for branch in branches:
+        if branch == "main" or branch == "master":
+            continue
+        if branch in merged_branch_names:
+            continue
+        if not has_changes_vs_main(branch):
+            no_change_branches.append(branch)
+    return no_change_branches
+
+
 def get_user_confirmation(msg):
     while True:
         user_input = input(msg).strip().lower()
@@ -104,17 +130,45 @@ github_repo, github_user = get_config()
 mb = get_merged_branches(github_repo, github_user)
 branches = get_git_branch_names()
 folders = get_folder_names()
+merged_branch_names = [branch for [branch, _] in mb]
 
+# Clean up merged branches
+print("=== Merged branches ===\n")
+merged_found = False
 for [branch, merged_at] in mb:
     if branch not in branches and branch not in folders:
         continue
+    merged_found = True
     print("Branch " + branch + " was merged at " + merged_at)
     if branch in folders:
         print("...worktree exists.")
     if branch in branches:
         print("...branch exists.")
-    if "y" == get_user_confirmation("Delete worktree and/or branch? (y/n)"):
+    if "y" == get_user_confirmation("Delete worktree and/or branch? (y/n) "):
         if branch in folders:
             delete_worktree(branch)
         if branch in branches:
             delete_branch(branch)
+if not merged_found:
+    print("No merged branches to clean up.")
+
+# Clean up branches with no changes vs main
+print("\n=== Branches with no changes vs main ===\n")
+no_change_branches = get_branches_with_no_changes(branches, merged_branch_names)
+no_change_found = False
+for branch in no_change_branches:
+    if branch not in branches and branch not in folders:
+        continue
+    no_change_found = True
+    print("Branch " + branch + " has no changes vs main")
+    if branch in folders:
+        print("...worktree exists.")
+    if branch in branches:
+        print("...branch exists.")
+    if "y" == get_user_confirmation("Delete worktree and/or branch? (y/n) "):
+        if branch in folders:
+            delete_worktree(branch)
+        if branch in branches:
+            delete_branch(branch)
+if not no_change_found:
+    print("No branches with no changes vs main.")
