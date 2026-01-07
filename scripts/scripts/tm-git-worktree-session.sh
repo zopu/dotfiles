@@ -35,7 +35,13 @@ else
 fi
 
 # Create session name format
-SESSION_NAME="$REPONAME-$BRANCH"
+# If inside tmux, base the new session name on the current session name
+if [ -n "$TMUX" ]; then
+  CURRENT_SESSION=$(tmux display-message -p '#S')
+  SESSION_NAME="$CURRENT_SESSION-$BRANCH"
+else
+  SESSION_NAME="$REPONAME-$BRANCH"
+fi
 
 echo "Creating worktree $BRANCH"
 
