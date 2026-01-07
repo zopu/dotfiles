@@ -13,6 +13,11 @@ lazydocker
 # LazyGit
 lazygit
 
+% git, worktree, tgs
+
+# Git worktree session
+tm-git-worktree-session.sh <branch>
+
 % dotfiles
 
 # Neovim dotfiles
