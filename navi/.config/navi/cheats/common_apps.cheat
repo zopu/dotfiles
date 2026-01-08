@@ -18,6 +18,12 @@ lazygit
 # Git worktree session
 tm-git-worktree-session.sh <branch>
 
+% git, github, gh, dash 
+
+# gh-dash
+
+gh dash
+
 % dotfiles
 
 # Neovim dotfiles
