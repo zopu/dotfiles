@@ -18,11 +18,15 @@ lazygit
 # Git worktree session
 tm-git-worktree-session.sh <branch>
 
-% git, github, gh, dash 
+% git, github, gh, dash
 
 # gh-dash
-
 gh dash
+
+% git, github, gh, pr
+
+# Open PR for current branch in browser
+gh pr view --web
 
 % dotfiles
 
