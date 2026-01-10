@@ -59,18 +59,29 @@ def get_git_branch_names():
         return []
 
 
-def get_folder_names():
+def get_worktrees():
+    """Get a dict mapping branch names to their worktree paths."""
     try:
         result = subprocess.run(
-            ["ls"],
+            ["git", "worktree", "list", "--porcelain"],
             capture_output=True,
             text=True,
             check=True,
         )
-        return result.stdout.splitlines()
+        worktrees = {}
+        current_path = None
+        for line in result.stdout.splitlines():
+            if line.startswith("worktree "):
+                current_path = line[9:]
+            elif line.startswith("branch refs/heads/"):
+                branch = line[18:]
+                if current_path:
+                    worktrees[branch] = current_path
+                current_path = None
+        return worktrees
     except subprocess.CalledProcessError as e:
-        print(f"Failed to get folder names: {e}")
-        return []
+        print(f"Failed to get worktrees: {e}")
+        return {}
 
 
 def has_changes_vs_main(branch):
@@ -117,37 +128,43 @@ def delete_branch(branch):
         print(f"Failed to delete branch {branch}: {e}")
 
 
-def delete_worktree(branch):
-    print("Deleting worktree " + branch)
+def delete_worktree(path):
+    print("Deleting worktree " + path)
     try:
-        subprocess.run(["git", "worktree", "remove", branch], check=True)
+        subprocess.run(["git", "worktree", "remove", path], check=True)
         print("Worktree deleted.")
+        return True
     except subprocess.CalledProcessError as e:
-        print(f"Failed to delete worktree {branch}: {e}")
+        print(f"Failed to delete worktree {path}: {e}")
+        return False
 
 
 github_repo, github_user = get_config()
 mb = get_merged_branches(github_repo, github_user)
 branches = get_git_branch_names()
-folders = get_folder_names()
+worktrees = get_worktrees()
 merged_branch_names = [branch for [branch, _] in mb]
 
 # Clean up merged branches
 print("=== Merged branches ===\n")
 merged_found = False
 for [branch, merged_at] in mb:
-    if branch not in branches and branch not in folders:
+    has_worktree = branch in worktrees
+    has_branch = branch in branches
+    if not has_branch and not has_worktree:
         continue
     merged_found = True
     print("Branch " + branch + " was merged at " + merged_at)
-    if branch in folders:
-        print("...worktree exists.")
-    if branch in branches:
+    if has_worktree:
+        print("...worktree exists at " + worktrees[branch])
+    if has_branch:
         print("...branch exists.")
     if "y" == get_user_confirmation("Delete worktree and/or branch? (y/n) "):
-        if branch in folders:
-            delete_worktree(branch)
-        if branch in branches:
+        if has_worktree:
+            if not delete_worktree(worktrees[branch]):
+                print("Skipping branch deletion since worktree removal failed.")
+                continue
+        if has_branch:
             delete_branch(branch)
 if not merged_found:
     print("No merged branches to clean up.")
@@ -157,18 +174,22 @@ print("\n=== Branches with no changes vs main ===\n")
 no_change_branches = get_branches_with_no_changes(branches, merged_branch_names)
 no_change_found = False
 for branch in no_change_branches:
-    if branch not in branches and branch not in folders:
+    has_worktree = branch in worktrees
+    has_branch = branch in branches
+    if not has_branch and not has_worktree:
         continue
     no_change_found = True
     print("Branch " + branch + " has no changes vs main")
-    if branch in folders:
-        print("...worktree exists.")
-    if branch in branches:
+    if has_worktree:
+        print("...worktree exists at " + worktrees[branch])
+    if has_branch:
         print("...branch exists.")
     if "y" == get_user_confirmation("Delete worktree and/or branch? (y/n) "):
-        if branch in folders:
-            delete_worktree(branch)
-        if branch in branches:
+        if has_worktree:
+            if not delete_worktree(worktrees[branch]):
+                print("Skipping branch deletion since worktree removal failed.")
+                continue
+        if has_branch:
             delete_branch(branch)
 if not no_change_found:
     print("No branches with no changes vs main.")
