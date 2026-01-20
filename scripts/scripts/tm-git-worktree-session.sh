@@ -69,6 +69,12 @@ else
     mkdir -p "$WORKTREE_PATH/.claude"
     ln -s "$MAIN_PATH/.claude/settings.local.json" "$WORKTREE_PATH/.claude/settings.local.json"
   fi
+
+  # Symlink AGENTS.local.md from main repo to new worktree
+  if [ -f "$MAIN_PATH/AGENTS.local.md" ]; then
+    echo "Symlinking AGENTS.local.md..."
+    ln -s "$MAIN_PATH/AGENTS.local.md" "$WORKTREE_PATH/AGENTS.local.md"
+  fi
 fi
 
 cd "$WORKTREE_PATH"
