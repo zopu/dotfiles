@@ -29,6 +29,7 @@
       "Bash(rg:*)",
       "Bash(templ generate:*)",
       "Bash(~/.claude/skills/pr-response/gh-reply-pr-comment.sh:*)",
+      "Bash(python ~/.claude/skills/pr-review-auto/wait_for_reviews.py:*)",
       "mcp__context7__get-library-docs",
       "mcp__context7__resolve-library-id",
       "mcp__playwright__playwright_get_visible_text",
