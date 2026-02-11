@@ -3,6 +3,22 @@ require("config.lazy")
 
 vim.diagnostic.config({ virtual_text = false })
 
+local slackcopy = require("slackcopy")
+
+vim.api.nvim_create_user_command("SlackCopy", function(opts)
+  slackcopy.copy(opts)
+end, {
+  desc = "Copy selection/buffer reformatted for Slack",
+  range = true,
+})
+
+vim.api.nvim_create_user_command("SlackReformat", function(opts)
+  slackcopy.reformat(opts)
+end, {
+  desc = "Reformat selection/buffer in place for Slack",
+  range = true,
+})
+
 -- vim.lsp.config['adv'] = {
 --   -- Command and arguments to start the server.
 --   cmd = { 'adv lsp' },
