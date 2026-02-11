@@ -1,7 +1,8 @@
 #!/bin/bash
-BRANCH=$1
-if [ -z "$BRANCH" ]; then
-  echo "Usage: tm-git-worktree-session.sh <branch>"
+WORKTREE_NAME=$1
+BRANCH=${2:-$WORKTREE_NAME}
+if [ -z "$WORKTREE_NAME" ]; then
+  echo "Usage: tm-git-worktree-session.sh <worktree-name> [branch-name]"
   exit 1
 fi
 
@@ -20,7 +21,7 @@ IS_BARE=$(git rev-parse --is-bare-repository)
 if [ "$IS_BARE" = "true" ]; then
   # Bare repo: worktrees are subdirectories
   BARE_ROOT=$(pwd)
-  WORKTREE_PATH="$BARE_ROOT/$BRANCH"
+  WORKTREE_PATH="$BARE_ROOT/$WORKTREE_NAME"
   MAIN_PATH="$BARE_ROOT/main"
 else
   # Non-bare repo: worktrees go in sibling <repo>-wt folder
@@ -31,19 +32,19 @@ else
   REPO_DIR=$(dirname "$MAIN_PATH")
   REPO_BASENAME=$(basename "$MAIN_PATH")
   WORKTREE_BASE="$REPO_DIR/${REPO_BASENAME}-wt"
-  WORKTREE_PATH="$WORKTREE_BASE/$BRANCH"
+  WORKTREE_PATH="$WORKTREE_BASE/$WORKTREE_NAME"
 fi
 
 # Create session name format
 # If inside tmux, base the new session name on the current session name
 if [ -n "$TMUX" ]; then
   CURRENT_SESSION=$(tmux display-message -p '#S')
-  SESSION_NAME="$CURRENT_SESSION-$BRANCH"
+  SESSION_NAME="$CURRENT_SESSION-$WORKTREE_NAME"
 else
-  SESSION_NAME="$REPONAME-$BRANCH"
+  SESSION_NAME="$REPONAME-$WORKTREE_NAME"
 fi
 
-echo "Creating worktree $BRANCH"
+echo "Creating worktree $WORKTREE_NAME"
 
 if [ -d "$WORKTREE_PATH" ]; then
   echo "Worktree already exists at $WORKTREE_PATH"

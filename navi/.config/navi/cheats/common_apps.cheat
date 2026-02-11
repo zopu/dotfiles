@@ -16,7 +16,12 @@ lazygit
 % git, worktree, tgs
 
 # Git worktree session
-tm-git-worktree-session.sh <branch>
+tm-git-worktree-session.sh <worktree_name> <branch>
+
+% git, worktree, tgo
+
+# Open existing git worktree (fzf)
+tm-git-worktree-open.sh
 
 % git, github, gh, dash
 

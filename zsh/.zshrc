@@ -28,6 +28,7 @@ if command -v thefuck >/dev/null 2>&1; then
 fi
 alias nv="nvim"
 alias tgs="tm-git-worktree-session.sh"
+alias tgo="tm-git-worktree-open.sh"
 alias lg="lazygit"
 alias lzd='lazydocker'
 alias fk="fuck"
