@@ -8,13 +8,28 @@ trees to find `claude` processes, then capture pane scrollback to infer status.
 import subprocess
 import re
 import sys
+from dataclasses import dataclass
+
+
+@dataclass
+class ClaudeTmuxSession:
+    pid: int
+    tmux_session: str
+    tmux_window: str
+    tmux_pane: str
+    cwd: str
+    elapsed: str | None = None
+    status: str = "unknown"
+    mode: str | None = None
+    last_activity: str | None = None
+    pending_edits: str | None = None
 
 
 def run(cmd: list[str], stdin: str | None = None) -> list[str]:
     r = subprocess.run(cmd, capture_output=True, text=True, input=stdin)
     if r.returncode != 0:
         return []
-    return [l for l in r.stdout.strip().splitlines() if l]
+    return [line for line in r.stdout.strip().splitlines() if line]
 
 
 def get_process_children(ppid: int) -> list[dict]:
@@ -122,7 +137,7 @@ def parse_claudecode_tmux_status(pane_id: str) -> dict:
     }
 
 
-def find_claude_tmux_sessions() -> list[dict]:
+def find_claude_tmux_sessions() -> list[ClaudeTmuxSession]:
     """Find all Claude Code instances in tmux panes."""
     pane_fmt = (
         "#{session_name}\t#{window_name}\t#{pane_id}\t#{pane_pid}\t#{pane_current_path}"
@@ -147,15 +162,15 @@ def find_claude_tmux_sessions() -> list[dict]:
                 status_info = parse_claudecode_tmux_status(pane_id)
 
                 sessions.append(
-                    {
-                        "pid": proc["pid"],
-                        "tmux_session": session_name,
-                        "tmux_window": window_name,
-                        "tmux_pane": pane_id,
-                        "cwd": cwd,
-                        "elapsed": elapsed,
+                    ClaudeTmuxSession(
+                        pid=proc["pid"],
+                        tmux_session=session_name,
+                        tmux_window=window_name,
+                        tmux_pane=pane_id,
+                        cwd=cwd,
+                        elapsed=elapsed,
                         **status_info,
-                    }
+                    )
                 )
     return sessions
 
@@ -170,18 +185,18 @@ def main():
     print(f"Found {len(sessions)} Claude Code instance(s) in tmux:\n")
 
     for i, s in enumerate(sessions, 1):
-        print(f"  [{i}] {s['tmux_session']}:{s['tmux_window']} ({s['tmux_pane']})")
-        print(f"      PID:     {s['pid']}")
-        print(f"      CWD:     {s['cwd']}")
-        print(f"      Uptime:  {s['elapsed'] or '?'}")
-        print(f"      Status:  {s['status']}", end="")
-        if s.get("mode"):
-            print(f" ({s['mode']} mode)", end="")
+        print(f"  [{i}] {s.tmux_session}:{s.tmux_window} ({s.tmux_pane})")
+        print(f"      PID:     {s.pid}")
+        print(f"      CWD:     {s.cwd}")
+        print(f"      Uptime:  {s.elapsed or '?'}")
+        print(f"      Status:  {s.status}", end="")
+        if s.mode:
+            print(f" ({s.mode} mode)", end="")
         print()
-        if s.get("last_activity"):
-            print(f"      Activity: {s['last_activity']}")
-        if s.get("pending_edits"):
-            print(f"      Edits:   {s['pending_edits']}")
+        if s.last_activity:
+            print(f"      Activity: {s.last_activity}")
+        if s.pending_edits:
+            print(f"      Edits:   {s.pending_edits}")
         print()
 
 
