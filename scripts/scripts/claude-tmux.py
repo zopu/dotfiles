@@ -1,12 +1,21 @@
 #!/usr/bin/env uv run
-"""Find all Claude Code instances running in tmux and display summary info.
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["textual>=1.0.0"]
+# ///
+"""Find and interact with Claude Code instances running in tmux.
 
-Inspired by sidekick.nvim's approach: enumerate tmux panes, walk process
-trees to find `claude` processes, then capture pane scrollback to infer status.
+Subcommands:
+  picker  - Interactive TUI to browse and switch to sessions (default)
+  status  - Print a one-line-per-session summary to stdout
+
+Usage:
+  uv run scripts/scripts/claude-tmux.py [picker|status]
 """
 
 import subprocess
 import re
+import os
 import sys
 from dataclasses import dataclass
 
@@ -175,29 +184,132 @@ def find_claude_tmux_sessions() -> list[ClaudeTmuxSession]:
     return sessions
 
 
-def main():
-    sessions = find_claude_tmux_sessions()
+def shorten_path(path: str) -> str:
+    """Shorten a path by replacing home dir with ~ and trimming long paths."""
+    home = os.path.expanduser("~")
+    if path.startswith(home):
+        path = "~" + path[len(home) :]
+    return path
 
+
+def status_display(session: ClaudeTmuxSession) -> str:
+    """Format status for display."""
+    s = session.status.upper()
+    if session.mode:
+        s += f" ({session.mode})"
+    return s
+
+
+def cmd_status() -> None:
+    """Print a concise one-line-per-session summary."""
+    sessions = find_claude_tmux_sessions()
     if not sessions:
         print("No Claude Code instances found in tmux.")
-        sys.exit(0)
+        return
 
-    print(f"Found {len(sessions)} Claude Code instance(s) in tmux:\n")
-
-    for i, s in enumerate(sessions, 1):
-        print(f"  [{i}] {s.tmux_session}:{s.tmux_window} ({s.tmux_pane})")
-        print(f"      PID:     {s.pid}")
-        print(f"      CWD:     {s.cwd}")
-        print(f"      Uptime:  {s.elapsed or '?'}")
-        print(f"      Status:  {s.status}", end="")
-        if s.mode:
-            print(f" ({s.mode} mode)", end="")
-        print()
+    for s in sessions:
+        parts = [
+            f"{s.tmux_session}:{s.tmux_window}",
+            status_display(s),
+            shorten_path(s.cwd),
+            s.elapsed or "?",
+        ]
         if s.last_activity:
-            print(f"      Activity: {s.last_activity}")
-        if s.pending_edits:
-            print(f"      Edits:   {s.pending_edits}")
-        print()
+            parts.append(s.last_activity)
+        print("  ".join(parts))
+
+
+def cmd_picker() -> None:
+    """Launch the interactive TUI picker."""
+    from textual.app import App, ComposeResult
+    from textual.widgets import DataTable, Header, Footer
+    from textual.binding import Binding
+
+    class ClaudeTmuxPicker(App):
+        CSS = """
+        DataTable {
+            height: 1fr;
+        }
+        """
+
+        BINDINGS = [
+            Binding("q", "quit", "Quit"),
+            Binding("escape", "quit", "Quit", show=False),
+            Binding("r", "refresh", "Refresh"),
+        ]
+
+        TITLE = "Claude Code Sessions"
+
+        def __init__(self):
+            super().__init__()
+            self._sessions: list[ClaudeTmuxSession] = []
+
+        def compose(self) -> ComposeResult:
+            yield Header()
+            yield DataTable(cursor_type="row")
+            yield Footer()
+
+        def on_mount(self) -> None:
+            self._load_sessions()
+
+        def _load_sessions(self) -> None:
+            table = self.query_one(DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Session", "Window", "Status", "CWD", "Uptime", "Activity"
+            )
+
+            self._sessions = find_claude_tmux_sessions()
+
+            if not self._sessions:
+                table.add_row("No sessions found", "", "", "", "", "")
+                return
+
+            for s in self._sessions:
+                table.add_row(
+                    s.tmux_session,
+                    s.tmux_window,
+                    status_display(s),
+                    shorten_path(s.cwd),
+                    s.elapsed or "?",
+                    s.last_activity or "",
+                )
+
+        def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+            if not self._sessions:
+                return
+            idx = event.cursor_row
+            if idx < 0 or idx >= len(self._sessions):
+                return
+            session = self._sessions[idx]
+            subprocess.run(
+                ["tmux", "switch-client", "-t", session.tmux_pane],
+                capture_output=True,
+            )
+            subprocess.run(
+                ["tmux", "select-pane", "-t", session.tmux_pane],
+                capture_output=True,
+            )
+            self.exit()
+
+        def action_refresh(self) -> None:
+            self._load_sessions()
+
+    ClaudeTmuxPicker().run()
+
+
+def main() -> None:
+    subcmd = sys.argv[1] if len(sys.argv) > 1 else "picker"
+
+    match subcmd:
+        case "picker":
+            cmd_picker()
+        case "status":
+            cmd_status()
+        case _:
+            print(f"Unknown subcommand: {subcmd}")
+            print("Usage: claude-tmux.py [picker|status]")
+            sys.exit(1)
 
 
 if __name__ == "__main__":
