@@ -28,7 +28,7 @@ if [[ "$OS" == "Linux" ]]; then
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   fi
 
-  # Set up Linuxbrew shellenv
+  # Add brew to PATH for this script (full shellenv deferred until after stow)
   if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
     eval "$('/home/linuxbrew/.linuxbrew/bin/brew' shellenv)"
   fi
@@ -94,6 +94,13 @@ else
   )
 fi
 
+# Back up existing .zshrc if it's a real file (not a symlink)
+if [[ -f "$HOME/.zshrc" && ! -L "$HOME/.zshrc" ]]; then
+  cp "$HOME/.zshrc" "$HOME/.zshrc.bak"
+  info "Copied existing ~/.zshrc to ~/.zshrc.bak"
+  rm "$HOME/.zshrc"
+fi
+
 for pkg in "${PACKAGES[@]}"; do
   if [[ ! -d "$REPO_ROOT/$pkg" ]]; then
     warn "Skipping $pkg (directory not found)"
@@ -103,6 +110,13 @@ for pkg in "${PACKAGES[@]}"; do
   info "Stowing $pkg -> $HOME"
   stow --dir="$REPO_ROOT" --target="$HOME" --restow "$pkg"
 done
+
+# --- Linuxbrew shellenv (after stow so .zshrc is linked) ---------------------
+
+if [[ "$OS" == "Linux" && -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+  info "Sourcing Linuxbrew shellenv (post-stow)..."
+  eval "$('/home/linuxbrew/.linuxbrew/bin/brew' shellenv)"
+fi
 
 # --- Post-install tips -------------------------------------------------------
 
