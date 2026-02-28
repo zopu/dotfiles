@@ -1,0 +1,68 @@
+# Brewfile.core — Essential cross-platform dev tools
+# Works on both macOS (Homebrew) and Linux (Linuxbrew)
+# Used by bootstrap.sh on Linux; macOS uses the full Brewfile instead.
+# Install with: brew bundle --file=Brewfile.core
+
+# Taps
+tap "jesseduffield/lazydocker"
+tap "oven-sh/bun"
+tap "sst/tap"
+
+# Core CLI
+brew "bat"
+brew "curl"
+brew "difftastic"
+brew "dust"
+brew "eza"
+brew "fd"
+brew "fzf"
+brew "gh"
+brew "git"
+brew "git-delta"
+brew "htop"
+brew "hyperfine"
+brew "jq"
+brew "ripgrep"
+brew "shellcheck"
+brew "shfmt"
+brew "starship"
+brew "stow"
+brew "tldr"
+brew "tokei"
+brew "tree"
+brew "websocat"
+brew "wget"
+brew "yamllint"
+brew "zoxide"
+
+# Dev tools
+brew "carapace"
+brew "claude-squad"
+brew "direnv"
+brew "helix"
+brew "just"
+brew "lazygit"
+brew "navi"
+brew "neovim"
+brew "pre-commit"
+brew "selene"
+brew "stylua"
+brew "thefuck"
+brew "tmux"
+brew "tpm"
+brew "watchexec"
+brew "yazi"
+
+# Languages & runtimes
+brew "deno"
+brew "go"
+brew "nvm"
+brew "pipx"
+brew "pnpm"
+brew "poetry"
+brew "python@3.11"
+
+# Specialized tap formulas
+brew "jesseduffield/lazydocker/lazydocker"
+brew "oven-sh/bun/bun"
+brew "sst/tap/opencode"

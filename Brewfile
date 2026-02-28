@@ -1,5 +1,9 @@
-# Homebrew Bundle for macOS dev environment
+# Homebrew Bundle — Full macOS dev environment
 # Install with: brew bundle
+#
+# For remote/Linux environments, use Brewfile.core instead (cross-platform
+# essentials only — no GUI apps, macOS-specific tools, or niche languages).
+# bootstrap.sh selects the right file automatically based on OS.
 
 # Taps
 tap "browsh-org/browsh"
