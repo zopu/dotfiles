@@ -37,7 +37,6 @@ brew "zoxide"
 
 # Dev tools
 brew "carapace"
-brew "claude-squad"
 brew "direnv"
 brew "helix"
 brew "just"
@@ -60,7 +59,8 @@ brew "nvm"
 brew "pipx"
 brew "pnpm"
 brew "poetry"
-brew "python@3.11"
+brew "python@3.13"
+brew "uv"
 
 # Specialized tap formulas
 brew "jesseduffield/lazydocker/lazydocker"
