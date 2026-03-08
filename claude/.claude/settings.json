@@ -54,23 +54,15 @@
           }
         ]
       }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/scripts/work-completion-reminder.ts"
-          }
-        ]
-      }
     ]
   },
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "linear@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
   "feedbackSurveyState": {
