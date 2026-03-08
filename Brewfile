@@ -33,10 +33,11 @@ brew "cloudflared"
 brew "cmake"
 brew "coreutils"
 brew "curl"
-brew "deno"           # JavaScript/TypeScript runtime
+brew "deno"
 brew "difftastic"
 brew "direnv"
-brew "docker"         # Container platform
+brew "docker"
+brew "dolt"
 brew "dtc"            # Device Tree Compiler
 brew "dust"           # Better du (disk usage)
 brew "editorconfig-checker"  # EditorConfig compliance

@@ -48,6 +48,9 @@ nvim ~/todo.txt
 # Claude
 claude
 
+# Claude with prompt
+claude -p "<prompt>"
+
 % Navi
 
 # Navi
@@ -72,3 +75,8 @@ yazi-tmux-wrapper.sh
 
 # htop
 htop
+
+% claude, tmux
+
+# Claude Code Tmux Sessions
+claude-tmux.py

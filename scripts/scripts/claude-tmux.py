@@ -27,68 +27,41 @@ class ClaudeTmuxSession:
     tmux_window: str
     tmux_pane: str
     cwd: str
-    elapsed: str | None = None
     status: str = "unknown"
     mode: str | None = None
     last_activity: str | None = None
     pending_edits: str | None = None
 
 
-def run(cmd: list[str], stdin: str | None = None) -> list[str]:
-    r = subprocess.run(cmd, capture_output=True, text=True, input=stdin)
+def run(cmd: list[str]) -> list[str]:
+    r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         return []
     return [line for line in r.stdout.strip().splitlines() if line]
 
 
-def get_process_children(ppid: int) -> list[dict]:
-    """Get child processes of a given PID."""
-    lines = run(["ps", "-o", "pid,comm", "-p", str(ppid)])
-    # ps includes a header line
-    children = []
-    for line in lines[1:]:
-        parts = line.split(None, 1)
-        if len(parts) == 2:
-            children.append({"pid": int(parts[0]), "comm": parts[1]})
-    return children
-
-
-def walk_process_descendants(pid: int) -> list[dict]:
-    """Walk the full process tree under a PID, return all descendants."""
+def build_process_tree() -> dict[int, list[dict]]:
+    """Build a full process tree (parent -> children) from a single ps call."""
     lines = run(["ps", "-eo", "pid,ppid,comm"])
-    if not lines:
-        return []
-
     by_parent: dict[int, list[dict]] = {}
     for line in lines[1:]:
         parts = line.split(None, 2)
         if len(parts) == 3:
-            p, pp, comm = int(parts[0]), int(parts[1]), parts[2]
-            by_parent.setdefault(pp, []).append({"pid": p, "ppid": pp, "comm": comm})
+            pid, ppid, comm = int(parts[0]), int(parts[1]), parts[2]
+            by_parent.setdefault(ppid, []).append({"pid": pid, "comm": comm})
+    return by_parent
 
+
+def walk_descendants(tree: dict[int, list[dict]], pid: int) -> list[dict]:
+    """Walk descendants of a PID using a pre-built process tree."""
     result = []
     stack = [pid]
     while stack:
         current = stack.pop()
-        for child in by_parent.get(current, []):
+        for child in tree.get(current, []):
             result.append(child)
             stack.append(child["pid"])
     return result
-
-
-def get_cwd(pid: int) -> str | None:
-    """Get working directory of a process via lsof."""
-    lines = run(["lsof", "-p", str(pid), "-a", "-d", "cwd", "-Fn"])
-    for line in lines:
-        if line.startswith("n"):
-            return line[1:]
-    return None
-
-
-def get_process_elapsed(pid: int) -> str | None:
-    """Get elapsed time of a process."""
-    lines = run(["ps", "-o", "etime=", "-p", str(pid)])
-    return lines[0].strip() if lines else None
 
 
 def parse_claudecode_tmux_status(pane_id: str) -> dict:
@@ -99,9 +72,17 @@ def parse_claudecode_tmux_status(pane_id: str) -> dict:
     last_activity = None
     mode = None
     pending_edits = None
+    seen_separator = False
 
     for line in reversed(lines):
         stripped = line.strip()
+
+        # Claude Code draws ─── separator lines around the input area.
+        # Track these so we can distinguish the live input prompt from
+        # a completed-turn prompt.
+        if stripped and all(c == "─" for c in stripped):
+            seen_separator = True
+            continue
 
         # Mode/status bar line (always near the bottom)
         if mode is None:
@@ -117,7 +98,7 @@ def parse_claudecode_tmux_status(pane_id: str) -> dict:
         # Activity indicators
         if last_activity is None:
             # Spinner line: "✻ Moonwalking…" (active) vs "✻ Cooked for 2m 8s" (done)
-            am = re.match(r"\s*✻\s+(.+)", stripped)
+            am = re.match(r"\s*[✻✽]\s+(.+)", stripped)
             if am:
                 activity = am.group(1)
                 last_activity = activity
@@ -133,10 +114,17 @@ def parse_claudecode_tmux_status(pane_id: str) -> dict:
                 status = "busy"
                 continue
 
-        # Prompt line means claude is idle and waiting for input
-        if stripped == "❯" or stripped.startswith("❯ "):
+        # Prompt line (❯). Claude uses non-breaking space (\xa0) after ❯.
+        # Skip the empty ❯ inside the input area (between separator lines) —
+        # that's the live input prompt, not a sign of idleness.
+        if stripped == "❯" or stripped.startswith(("❯ ", "❯\xa0")):
+            if seen_separator and stripped == "❯":
+                # Empty prompt between separators = active input area, skip it
+                seen_separator = False
+                continue
             if status == "unknown":
                 status = "idle"
+            break
 
     return {
         "status": status,
@@ -152,6 +140,7 @@ def find_claude_tmux_sessions() -> list[ClaudeTmuxSession]:
         "#{session_name}\t#{window_name}\t#{pane_id}\t#{pane_pid}\t#{pane_current_path}"
     )
     lines = run(["tmux", "list-panes", "-a", "-F", pane_fmt])
+    tree = build_process_tree()
 
     sessions = []
     for line in lines:
@@ -159,25 +148,17 @@ def find_claude_tmux_sessions() -> list[ClaudeTmuxSession]:
         if len(parts) != 5:
             continue
         session_name, window_name, pane_id, pane_pid, pane_cwd = parts
-        pane_pid = int(pane_pid)
 
-        # Walk the process tree under this pane to find claude
-        descendants = walk_process_descendants(pane_pid)
-        for proc in descendants:
-            # Match the word "claude" but not "Claude.app" (desktop app)
+        for proc in walk_descendants(tree, int(pane_pid)):
             if re.search(r"\bclaude$", proc["comm"]):
-                cwd = get_cwd(proc["pid"]) or pane_cwd
-                elapsed = get_process_elapsed(proc["pid"])
                 status_info = parse_claudecode_tmux_status(pane_id)
-
                 sessions.append(
                     ClaudeTmuxSession(
                         pid=proc["pid"],
                         tmux_session=session_name,
                         tmux_window=window_name,
                         tmux_pane=pane_id,
-                        cwd=cwd,
-                        elapsed=elapsed,
+                        cwd=pane_cwd,
                         **status_info,
                     )
                 )
@@ -185,15 +166,13 @@ def find_claude_tmux_sessions() -> list[ClaudeTmuxSession]:
 
 
 def shorten_path(path: str) -> str:
-    """Shorten a path by replacing home dir with ~ and trimming long paths."""
     home = os.path.expanduser("~")
     if path.startswith(home):
-        path = "~" + path[len(home) :]
+        path = "~" + path[len(home):]
     return path
 
 
 def status_display(session: ClaudeTmuxSession) -> str:
-    """Format status for display."""
     s = session.status.upper()
     if session.mode:
         s += f" ({session.mode})"
@@ -201,7 +180,6 @@ def status_display(session: ClaudeTmuxSession) -> str:
 
 
 def cmd_status() -> None:
-    """Print a concise one-line-per-session summary."""
     sessions = find_claude_tmux_sessions()
     if not sessions:
         print("No Claude Code instances found in tmux.")
@@ -212,7 +190,6 @@ def cmd_status() -> None:
             f"{s.tmux_session}:{s.tmux_window}",
             status_display(s),
             shorten_path(s.cwd),
-            s.elapsed or "?",
         ]
         if s.last_activity:
             parts.append(s.last_activity)
@@ -220,7 +197,6 @@ def cmd_status() -> None:
 
 
 def cmd_picker() -> None:
-    """Launch the interactive TUI picker."""
     from textual.app import App, ComposeResult
     from textual.widgets import DataTable, Header, Footer
     from textual.binding import Binding
@@ -255,14 +231,12 @@ def cmd_picker() -> None:
         def _load_sessions(self) -> None:
             table = self.query_one(DataTable)
             table.clear(columns=True)
-            table.add_columns(
-                "Session", "Window", "Status", "CWD", "Uptime", "Activity"
-            )
+            table.add_columns("Session", "Window", "Status", "CWD", "Activity")
 
             self._sessions = find_claude_tmux_sessions()
 
             if not self._sessions:
-                table.add_row("No sessions found", "", "", "", "", "")
+                table.add_row("No sessions found", "", "", "", "")
                 return
 
             for s in self._sessions:
@@ -271,7 +245,6 @@ def cmd_picker() -> None:
                     s.tmux_window,
                     status_display(s),
                     shorten_path(s.cwd),
-                    s.elapsed or "?",
                     s.last_activity or "",
                 )
 
