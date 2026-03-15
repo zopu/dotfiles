@@ -22,6 +22,17 @@ if [[ "$OS" == "Linux" ]]; then
     sudo apt-get update -qq && sudo apt-get install -y -qq zsh
   fi
 
+  # Set default shell to zsh
+  if [[ "$(basename "$SHELL")" != "zsh" ]]; then
+    ZSH_PATH="$(command -v zsh)"
+    if ! grep -qx "$ZSH_PATH" /etc/shells; then
+      info "Adding $ZSH_PATH to /etc/shells..."
+      echo "$ZSH_PATH" | sudo tee -a /etc/shells >/dev/null
+    fi
+    info "Setting default shell to zsh..."
+    sudo chsh -s "$ZSH_PATH" "$(whoami)"
+  fi
+
   # Install Linuxbrew
   if ! command -v brew >/dev/null 2>&1; then
     info "Installing Linuxbrew..."
