@@ -90,6 +90,7 @@ if [[ "$OS" == "Linux" ]]; then
     tmux
     starship
     opencode
+    scripts
   )
 else
   PACKAGES=(
@@ -102,6 +103,7 @@ else
     kanata
     conda
     opencode
+    scripts
   )
 fi
 
