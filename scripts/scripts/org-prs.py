@@ -101,6 +101,15 @@ def list_prs_in_range(
                 done = True
                 break
 
+            # Fetch individual PR for line change stats
+            try:
+                detail = gh_api(f"/repos/{owner}/{repo}/pulls/{pr['number']}")
+                additions = detail.get("additions", 0)
+                deletions = detail.get("deletions", 0)
+                changed_files = detail.get("changed_files", 0)
+            except RuntimeError:
+                additions = deletions = changed_files = None
+
             prs.append(
                 {
                     "repo": repo,
@@ -115,6 +124,9 @@ def list_prs_in_range(
                     "closed_at": pr.get("closed_at"),
                     "url": pr["html_url"],
                     "labels": [l["name"] for l in pr.get("labels", [])],
+                    "additions": additions,
+                    "deletions": deletions,
+                    "changed_files": changed_files,
                 }
             )
 
