@@ -1,4 +1,10 @@
 export XDG_CONFIG_HOME="$HOME/.config"
+
+# Move tmux sockets out of /tmp on Linux to prevent systemd-tmpfiles cleanup
+if [[ "$(uname)" == "Linux" ]]; then
+  export TMUX_TMPDIR="$HOME/.tmux/sockets"
+  mkdir -p "$TMUX_TMPDIR"
+fi
 export NVM_DIR="$HOME/.nvm"
 # Lazy load nvm for faster shell startup
 nvm() {
