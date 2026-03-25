@@ -67,12 +67,6 @@ This is a personal dotfiles repository for macOS development environment configu
 ## Claude Code Agents
 
 This repository includes specialized Claude Code agents for research and development tasks:
-
-### Research Team Agents
-- **Tech Research Lead** - Coordinates research activities and validates team outputs
-- **Tech Researcher** - Conducts comprehensive technical research and documentation
-- **Tech Research Librarian** - Maintains documentation library organization and integrity
-
 ### Agent Configuration
 Agent definitions are located in `claude/.claude/agents/` and follow established collaboration patterns for multi-agent workflows.
 
