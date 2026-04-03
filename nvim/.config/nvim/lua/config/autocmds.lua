@@ -15,9 +15,21 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = "neotodo",
-  callback = function()
-    vim.b.sidekick_nes = false
+  pattern = { "neotodo", "markdown" },
+  callback = function(ev)
+    -- Disable cursortab completions for these filetypes
+    local ok, cfg = pcall(function()
+      return require("cursortab.config").get()
+    end)
+    if ok and cfg then
+      local filetypes = cfg.behavior.ignore_filetypes
+      for _, ft in ipairs(filetypes) do
+        if ft == ev.match then
+          return
+        end
+      end
+      table.insert(filetypes, ev.match)
+    end
   end,
 })
 
