@@ -12,6 +12,7 @@ return {
         move_to_section = "ts",
         move_to_now = "tn",
         move_task = "tm",
+        import_tasks = "ti",
       },
     })
   end,

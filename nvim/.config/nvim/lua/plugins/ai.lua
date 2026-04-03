@@ -11,40 +11,60 @@ return {
         },
       },
       nes = {
-        enabled = function(buf)
-          local ft = vim.bo[buf].filetype
-          return ft ~= "neotodo"
-        end,
+        enabled = false,
       },
     },
   },
   {
-    "coder/claudecode.nvim",
-    dependencies = { "folke/snacks.nvim" },
-    keys = {
-      { claude_toggle_key, "<cmd>ClaudeCodeFocus<cr>", desc = "Claude Code", mode = { "n", "x" } },
-    },
-    opts = {
-      terminal_cmd = "~/.claude/local/claude", -- Point to local installation
-      terminal = {
-        ---@module "snacks"
-        ---@type snacks.win.Config|{}
-        snacks_win_opts = {
-          position = "float",
-          width = 0.95,
-          height = 0.95,
-          keys = {
-            claude_hide = {
-              claude_toggle_key,
-              function(self)
-                self:hide()
-              end,
-              mode = "t",
-              desc = "Hide",
-            },
-          },
+    "cursortab/cursortab.nvim",
+    -- version = "*",  -- Use latest tagged version for more stability
+    lazy = false, -- The server is already lazy loaded
+    build = "cd server && go build",
+    config = function()
+      require("cursortab").setup({
+        provider = {
+          type = "mercuryapi",
+          api_key_env = "MERCURY_AI_TOKEN",
         },
-      },
-    },
+        keymaps = {
+          accept = false, -- Let blink manage <Tab>
+        },
+        blink = {
+          enabled = true,
+          ghost_text = false, -- Disable native ghost text
+        },
+      })
+    end,
+  },
+  {
+    "saghen/blink.cmp",
+    opts = function(_, opts)
+      opts.sources = opts.sources or {}
+      opts.sources.default = opts.sources.default or {}
+      table.insert(opts.sources.default, "cursortab")
+      opts.sources.providers = opts.sources.providers or {}
+      opts.sources.providers.cursortab = {
+        module = "cursortab.blink",
+        name = "cursortab",
+        async = true,
+        timeout_ms = 5000,
+        score_offset = 200,
+      }
+      opts.keymap = opts.keymap or {}
+      opts.keymap["<Tab>"] = {
+        function(cmp)
+          if cmp.snippet_active() then
+            return cmp.accept()
+          elseif cmp.is_visible() then
+            return cmp.select_and_accept()
+          else
+            return cmp.show()
+          end
+        end,
+        "snippet_forward",
+        "fallback",
+      }
+      opts.keymap["<S-Tab>"] = { "snippet_backward", "fallback" }
+    end,
   },
 }
