@@ -1,6 +1,6 @@
 return {
   "zopu/neotodo",
-  -- dir = "/Users/mikeperrow/code/neotodo",
+  -- dir = vim.fn.expand("~") .. "/code/neotodo",
   name = "neotodo",
   -- dev = true,
   config = function()
