@@ -124,6 +124,25 @@ for pkg in "${PACKAGES[@]}"; do
   stow --dir="$REPO_ROOT" --target="$HOME" --restow "$pkg"
 done
 
+# --- Karabiner VirtualHIDDevice Daemon (macOS only) --------------------------
+
+if [[ "$OS" != "Linux" ]]; then
+  KARABINER_PLIST="org.pqrs.Karabiner-VirtualHIDDevice-Daemon.plist"
+  KARABINER_SRC="$REPO_ROOT/kanata/$KARABINER_PLIST"
+  KARABINER_DST="/Library/LaunchDaemons/$KARABINER_PLIST"
+
+  if [[ -f "$KARABINER_SRC" && ! -f "$KARABINER_DST" ]]; then
+    info "Installing Karabiner VirtualHIDDevice Daemon LaunchDaemon..."
+    sudo cp "$KARABINER_SRC" "$KARABINER_DST"
+    sudo launchctl load "$KARABINER_DST"
+    success "Karabiner VirtualHIDDevice Daemon installed and loaded."
+  elif [[ -f "$KARABINER_DST" ]]; then
+    info "Karabiner VirtualHIDDevice Daemon already installed."
+  else
+    warn "Karabiner plist not found at $KARABINER_SRC. Skipping."
+  fi
+fi
+
 # --- Linuxbrew shellenv (after stow so .zshrc is linked) ---------------------
 
 if [[ "$OS" == "Linux" && -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
