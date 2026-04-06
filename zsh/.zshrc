@@ -32,6 +32,7 @@ export PATH="$HOME/.local/bin:$PATH"
 if command -v thefuck >/dev/null 2>&1; then
   eval "$(thefuck --alias)"
 fi
+alias cpr="claude \"/pr-comment-auto\""
 alias nv="nvim"
 alias tgs="tm-git-worktree-session.sh"
 alias tgo="tm-git-worktree-open.sh"
