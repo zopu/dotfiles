@@ -103,3 +103,6 @@ fi
 
 # Navi widget
 eval "$(navi widget zsh)"
+
+# Low-value frequent-use env credentials
+[[ -f ~/.zshrc.secrets ]] && source ~/.zshrc.secrets
