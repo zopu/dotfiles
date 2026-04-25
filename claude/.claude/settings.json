@@ -18,6 +18,12 @@
       "Bash(go test:*)",
       "Bash(go vet:*)",
       "Bash(grep:*)",
+      "Bash(gt branch info:*)",
+      "Bash(gt children:*)",
+      "Bash(gt log:*)",
+      "Bash(gt ls:*)",
+      "Bash(gt parent:*)",
+      "Bash(gt trunk:*)",
       "Bash(ls:*)",
       "Bash(lsof:*)",
       "Bash(make build)",
@@ -41,7 +47,11 @@
       "mcp__playwright__playwright_evaluate",
       "mcp__playwright__playwright_close",
       "WebFetch(domain:*)"
-    ]
+    ],
+    "ask": [
+      "Bash(gt:*)"
+    ],
+    "defaultMode": "auto"
   },
   "hooks": {
     "Stop": [
@@ -65,7 +75,10 @@
     "linear@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
+  "tui": "fullscreen",
+  "skipAutoPermissionPrompt": true,
   "feedbackSurveyState": {
     "lastShownTime": 1754086230997
-  }
+  },
+  "editorMode": "vim"
 }
