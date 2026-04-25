@@ -1,5 +1,7 @@
 export XDG_CONFIG_HOME="$HOME/.config"
 export EDITOR="nvim"
+# EDITOR contains "vi", which makes zsh auto-select the viins keymap (^P/^N → self-insert).
+bindkey -e
 
 # Move tmux sockets out of /tmp on Linux to prevent systemd-tmpfiles cleanup
 if [[ "$(uname)" == "Linux" ]]; then
