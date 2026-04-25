@@ -1,4 +1,5 @@
 export XDG_CONFIG_HOME="$HOME/.config"
+export EDITOR="nvim"
 
 # Move tmux sockets out of /tmp on Linux to prevent systemd-tmpfiles cleanup
 if [[ "$(uname)" == "Linux" ]]; then
@@ -32,6 +33,7 @@ export PATH="$HOME/.local/bin:$PATH"
 if command -v thefuck >/dev/null 2>&1; then
   eval "$(thefuck --alias)"
 fi
+alias prv="~/scripts/pi-review"
 alias cpr="claude \"/pr-comment-auto\""
 alias nv="nvim"
 alias tgs="tm-git-worktree-session.sh"

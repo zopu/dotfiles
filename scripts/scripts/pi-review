@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+
+# pi-review: Automated code review using pi and Gemini Pro
+# Designed for Graphite and standard Git workflows
+
+set -e
+
+# Detect if we are in a git repository
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "Error: Not in a git repository."
+    exit 1
+fi
+
+# Function to get the relevant diff
+get_diff() {
+    local branch_name
+    branch_name=$(git rev-parse --abbrev-ref HEAD)
+    
+    # 1. Graphite Workflow
+    if command -v gt >/dev/null 2>&1 && [ "$branch_name" != "master" ] && [ "$branch_name" != "main" ]; then
+        # Check if this is a Graphite-tracked branch
+        if gt branch info --no-interactive >/dev/null 2>&1; then
+            echo "Graphite branch detected: $branch_name" >&2
+            
+            # Get changes in the stack (committed)
+            local gt_diff
+            gt_diff=$(gt branch info --diff --no-interactive 2>/dev/null || true)
+            
+            # Get uncommitted changes
+            local uncommitted_diff
+            uncommitted_diff=$(git diff HEAD)
+            
+            if [[ "$gt_diff" == *"diff --git"* ]] || [ -n "$uncommitted_diff" ]; then
+                echo "Combining committed stack changes and uncommitted work..." >&2
+                echo "$gt_diff"
+                echo "$uncommitted_diff"
+                return
+            fi
+        fi
+    fi
+
+    # 2. Standard Git Workflow
+    
+    # If on main/master
+    if [ "$branch_name" = "master" ] || [ "$branch_name" = "main" ]; then
+        local uncommitted_diff
+        uncommitted_diff=$(git diff HEAD)
+        if [ -n "$uncommitted_diff" ]; then
+            echo "On $branch_name. Reviewing uncommitted changes..." >&2
+            echo "$uncommitted_diff"
+        else
+            echo "On $branch_name with no uncommitted changes. Reviewing the latest commit..." >&2
+            git show HEAD
+        fi
+        return
+    fi
+
+    # For other git branches: compare against main/master AND include uncommitted
+    local main_branch
+    main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+    main_branch=${main_branch:-main}
+    if ! git show-ref --verify --quiet "refs/heads/$main_branch"; then
+        if git show-ref --verify --quiet "refs/heads/master"; then
+            main_branch="master"
+        fi
+    fi
+
+    echo "Comparing $branch_name against $main_branch (including uncommitted)..." >&2
+    # This range includes uncommitted changes in the working tree
+    git diff "$main_branch"
+}
+
+echo "Analyzing repository state..." >&2
+DIFF=$(get_diff)
+
+if [ -z "$DIFF" ]; then
+    echo "No changes found to review." >&2
+    exit 0
+fi
+
+echo "Sending diff to Gemini Pro for review..." >&2
+
+SYSTEM_PROMPT="You are a senior staff engineer and expert code reviewer, providing feedback with the same depth, technical rigor, and actionability as Gemini's online review agent.
+
+Review the following git diff. Your analysis is intended for another AI coding agent to consume.
+
+STRUCTURE YOUR RESPONSE AS FOLLOWS:
+1. **Summary**: A concise overview of the changes and their primary purpose.
+2. **Technical Assessment**: Evaluate tradeoffs in performance, readability, and maintainability. Comment on architectural alignment and potential side effects.
+3. **Actionable Feedback**: List specific improvements, bugs, or edge cases. For each point, provide enough context, code snippets, or reasoning so that another agent can implement the change immediately without further research.
+4. **Conclusion**: Final verdict (e.g., LGTM, Minor Improvements, Critical Issues).
+
+BE CONCISE BUT HIGH-DENSITY. Focus on the 'why' as much as the 'what'. Provide context for tradeoffs to help a consuming agent make informed decisions."
+
+# Model: Latest Gemini Pro available (using google/gemini-3.1-pro-preview based on pi --list-models)
+MODEL="google/gemini-3.1-pro-preview"
+
+# Create a temporary file for the patch to avoid shell argument length limits
+TEMP_PATCH=$(mktemp -t pi-review.XXXXXX)
+# Ensure cleanup on exit
+trap 'rm -f "$TEMP_PATCH"' EXIT
+
+echo "$DIFF" > "$TEMP_PATCH"
+
+# Invoke pi in non-interactive mode
+pi -p --model "$MODEL" \
+   --system-prompt "$SYSTEM_PROMPT" \
+   @"$TEMP_PATCH" \
+   "Review the attached code changes. Focus on providing actionable, high-context feedback for another AI agent."
