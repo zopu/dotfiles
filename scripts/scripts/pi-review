@@ -5,105 +5,276 @@
 
 set -e
 
+VERBOSE=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+  -v | --verbose)
+    VERBOSE=1
+    shift
+    ;;
+  -h | --help)
+    cat <<EOF
+Usage: pi-review [-v|--verbose]
+
+Runs a code review on the current branch using pi.
+
+Options:
+  -v, --verbose   Print the full system prompt and user prompt to stderr
+                  before invoking the agent.
+EOF
+    exit 0
+    ;;
+  *)
+    echo "Unknown argument: $1" >&2
+    exit 1
+    ;;
+  esac
+done
+
 # Detect if we are in a git repository
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "Error: Not in a git repository."
-    exit 1
+  echo "Error: Not in a git repository."
+  exit 1
 fi
 
-# Function to get the relevant diff
-get_diff() {
-    local branch_name
-    branch_name=$(git rev-parse --abbrev-ref HEAD)
-    
-    # 1. Graphite Workflow
-    if command -v gt >/dev/null 2>&1 && [ "$branch_name" != "master" ] && [ "$branch_name" != "main" ]; then
-        # Check if this is a Graphite-tracked branch
-        if gt branch info --no-interactive >/dev/null 2>&1; then
-            echo "Graphite branch detected: $branch_name" >&2
-            
-            # Get changes in the stack (committed)
-            local gt_diff
-            gt_diff=$(gt branch info --diff --no-interactive 2>/dev/null || true)
-            
-            # Get uncommitted changes
-            local uncommitted_diff
-            uncommitted_diff=$(git diff HEAD)
-            
-            if [[ "$gt_diff" == *"diff --git"* ]] || [ -n "$uncommitted_diff" ]; then
-                echo "Combining committed stack changes and uncommitted work..." >&2
-                echo "$gt_diff"
-                echo "$uncommitted_diff"
-                return
-            fi
-        fi
-    fi
+if ! command -v nono >/dev/null 2>&1; then
+  echo "Error: pi-review requires nono (https://nono.sh)" >&2
+  exit 1
+fi
 
-    # 2. Standard Git Workflow
-    
-    # If on main/master
-    if [ "$branch_name" = "master" ] || [ "$branch_name" = "main" ]; then
-        local uncommitted_diff
-        uncommitted_diff=$(git diff HEAD)
-        if [ -n "$uncommitted_diff" ]; then
-            echo "On $branch_name. Reviewing uncommitted changes..." >&2
-            echo "$uncommitted_diff"
-        else
-            echo "On $branch_name with no uncommitted changes. Reviewing the latest commit..." >&2
-            git show HEAD
-        fi
-        return
-    fi
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: pi-review requires jq" >&2
+  exit 1
+fi
 
-    # For other git branches: compare against main/master AND include uncommitted
-    local main_branch
-    main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
-    main_branch=${main_branch:-main}
-    if ! git show-ref --verify --quiet "refs/heads/$main_branch"; then
-        if git show-ref --verify --quiet "refs/heads/master"; then
-            main_branch="master"
-        fi
-    fi
+REPO_ROOT=$(git rev-parse --show-toplevel)
 
-    echo "Comparing $branch_name against $main_branch (including uncommitted)..." >&2
-    # This range includes uncommitted changes in the working tree
-    git diff "$main_branch"
+# Determine the review context: branch, base, changed files, and how to view the diff.
+# Outputs a human-readable context block to stdout.
+build_context() {
+  local branch_name
+  branch_name=$(git rev-parse --abbrev-ref HEAD)
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
+
+  # 1. Graphite Workflow
+  if command -v gt >/dev/null 2>&1 && [ "$branch_name" != "master" ] && [ "$branch_name" != "main" ]; then
+    if gt branch info --no-interactive >/dev/null 2>&1; then
+      local gt_parent
+      gt_parent=$(gt branch parent --no-interactive 2>/dev/null || true)
+      local has_uncommitted="no"
+      [ -n "$(git diff HEAD)" ] && has_uncommitted="yes"
+
+      cat <<EOF
+WORKFLOW: Graphite stacked branch
+REPO_ROOT: $repo_root
+CURRENT_BRANCH: $branch_name
+PARENT_BRANCH: ${gt_parent:-unknown}
+UNCOMMITTED_CHANGES: $has_uncommitted
+
+CHANGED_FILES (committed in this branch vs parent):
+$(git diff --name-status "${gt_parent:-HEAD~1}"...HEAD 2>/dev/null || echo "(unable to determine)")
+
+CHANGED_FILES (uncommitted):
+$(git diff --name-status HEAD)
+
+HOW_TO_VIEW_FULL_DIFF:
+  git diff ${gt_parent:-HEAD~1}...HEAD     # committed changes in this branch
+  git diff HEAD                            # uncommitted changes
+EOF
+      return
+    fi
+  fi
+
+  # 2. On main/master
+  if [ "$branch_name" = "master" ] || [ "$branch_name" = "main" ]; then
+    if [ -n "$(git diff HEAD)" ]; then
+      cat <<EOF
+WORKFLOW: On $branch_name with uncommitted changes
+REPO_ROOT: $repo_root
+CURRENT_BRANCH: $branch_name
+
+CHANGED_FILES (uncommitted):
+$(git diff --name-status HEAD)
+
+HOW_TO_VIEW_FULL_DIFF:
+  git diff HEAD
+EOF
+    else
+      local last_sha
+      last_sha=$(git rev-parse HEAD)
+      cat <<EOF
+WORKFLOW: On $branch_name with no uncommitted changes; reviewing latest commit
+REPO_ROOT: $repo_root
+CURRENT_BRANCH: $branch_name
+TARGET_COMMIT: $last_sha
+
+CHANGED_FILES (in HEAD):
+$(git show --name-status --format= HEAD)
+
+HOW_TO_VIEW_FULL_DIFF:
+  git show HEAD
+EOF
+    fi
+    return
+  fi
+
+  # 3. Standard feature branch: compare against main/master
+  local main_branch
+  main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+  main_branch=${main_branch:-main}
+  if ! git show-ref --verify --quiet "refs/heads/$main_branch"; then
+    if git show-ref --verify --quiet "refs/heads/master"; then
+      main_branch="master"
+    fi
+  fi
+
+  local has_uncommitted="no"
+  [ -n "$(git diff HEAD)" ] && has_uncommitted="yes"
+
+  cat <<EOF
+WORKFLOW: Feature branch vs $main_branch
+REPO_ROOT: $repo_root
+CURRENT_BRANCH: $branch_name
+BASE_BRANCH: $main_branch
+UNCOMMITTED_CHANGES: $has_uncommitted
+
+CHANGED_FILES (committed in this branch vs $main_branch):
+$(git diff --name-status "$main_branch"...HEAD)
+
+CHANGED_FILES (uncommitted):
+$(git diff --name-status HEAD)
+
+HOW_TO_VIEW_FULL_DIFF:
+  git diff $main_branch...HEAD     # committed changes in this branch
+  git diff HEAD                    # uncommitted changes
+  git diff $main_branch            # everything (committed + uncommitted) vs base
+EOF
 }
 
 echo "Analyzing repository state..." >&2
-DIFF=$(get_diff)
+CONTEXT=$(build_context)
 
-if [ -z "$DIFF" ]; then
-    echo "No changes found to review." >&2
-    exit 0
+echo "Sending review request..." >&2
+
+SYSTEM_PROMPT="You are a senior staff engineer performing a line-level code review. Your output will be consumed by another AI agent that will apply your suggestions, so be specific and actionable.
+
+You have shell and file-reading tools. Use them. Do NOT review based on summaries — read the actual code.
+
+REVIEW PROCESS:
+1. Use the HOW_TO_VIEW_FULL_DIFF commands provided in the context to read the diff.
+2. For any non-trivial change, open the surrounding file(s) to understand callers, types, invariants, and adjacent code that the diff alone does not show.
+3. Focus on the changed lines, but flag pre-existing issues only if they directly interact with the change.
+
+OUTPUT FORMAT — use this structure exactly:
+
+## Summary
+One or two sentences: what this change does and why.
+
+## Line-Level Comments
+A list of specific, anchored comments. Each comment MUST follow this format:
+
+  **\`path/to/file.ext:LINE\`** (or \`path/to/file.ext:START-END\` for a range)
+  [severity: blocker | major | minor | nit | praise]
+  <The actual comment. Quote the offending line(s) verbatim. Explain WHY it is a problem (bug, race, perf, readability, security, etc.). Then give a concrete suggested replacement as a code block when applicable.>
+
+Group comments by file, in the order files appear in the diff. If a file has no comments, skip it.
+
+## Cross-Cutting Concerns
+Issues that span multiple files or are architectural (e.g. \"this new abstraction duplicates X in foo.py\", \"the error type added here is not handled by the caller in bar.py:42\"). Skip this section if there are none.
+
+## Verdict
+One of: LGTM / Approve with nits / Request changes / Block.
+One sentence justifying the verdict.
+
+RULES:
+- Anchor every comment to a specific file and line number. Comments without anchors are not useful to the consuming agent.
+- Quote the code you are commenting on. Do not paraphrase.
+- Prefer fewer high-signal comments over many low-signal ones. A correct nitpick about naming is worth less than catching a real bug; weight your output accordingly.
+- If you have nothing substantive to say about a file, say nothing about it.
+- Do NOT restate what the diff does line by line. The reader can read the diff."
+
+MODEL="google/gemini-flash-latest"
+
+USER_PROMPT="Review the change described below. Use your tools to read the diff and surrounding code before commenting.
+
+$CONTEXT"
+
+if [ "$VERBOSE" -eq 1 ]; then
+  {
+    echo "===== MODEL ====="
+    echo "$MODEL"
+    echo
+    echo "===== SYSTEM PROMPT ====="
+    echo "$SYSTEM_PROMPT"
+    echo
+    echo "===== USER PROMPT ====="
+    echo "$USER_PROMPT"
+    echo
+    echo "===== END PROMPT ====="
+  } >&2
 fi
 
-echo "Sending diff to Gemini Pro for review..." >&2
+# Always run pi in JSON streaming mode so we can render progress as events arrive.
+# A jq filter routes user-visible status to stderr (\x01 prefix) and the agent's
+# final text to stdout (\x02 prefix). awk demuxes the two streams and treats
+# unprefixed continuation lines as part of the most recent channel.
+PI_ARGS=(-p --no-session --model "$MODEL" --system-prompt "$SYSTEM_PROMPT" --mode json)
+if [ "$VERBOSE" -eq 1 ]; then
+  PI_ARGS+=(--thinking high)
+fi
 
-SYSTEM_PROMPT="You are a senior staff engineer and expert code reviewer, providing feedback with the same depth, technical rigor, and actionability as Gemini's online review agent.
+# Sandbox config lives next to this script in pi-review.nono.json. It sets:
+#   - extends node-dev (node/nvm/npm read grants)
+#   - workdir read-only (the repo)
+#   - read access to ~/.pi (config) and ~/.gitconfig
+#   - network restricted to the Gemini API endpoint
+#   - GEMINI_API_KEY forwarded from the parent shell via env:// URI
+NONO_PROFILE_PATH="$(dirname "$0")/pi-review.nono.json"
 
-Review the following git diff. Your analysis is intended for another AI coding agent to consume.
+NONO_ARGS=(
+  --silent
+  --profile "$NONO_PROFILE_PATH"
+  --allow-cwd
+)
 
-STRUCTURE YOUR RESPONSE AS FOLLOWS:
-1. **Summary**: A concise overview of the changes and their primary purpose.
-2. **Technical Assessment**: Evaluate tradeoffs in performance, readability, and maintainability. Comment on architectural alignment and potential side effects.
-3. **Actionable Feedback**: List specific improvements, bugs, or edge cases. For each point, provide enough context, code snippets, or reasoning so that another agent can implement the change immediately without further research.
-4. **Conclusion**: Final verdict (e.g., LGTM, Minor Improvements, Critical Issues).
-
-BE CONCISE BUT HIGH-DENSITY. Focus on the 'why' as much as the 'what'. Provide context for tradeoffs to help a consuming agent make informed decisions."
-
-# Model: Latest Gemini Pro available (using google/gemini-3.1-pro-preview based on pi --list-models)
-MODEL="google/gemini-3.1-pro-preview"
-
-# Create a temporary file for the patch to avoid shell argument length limits
-TEMP_PATCH=$(mktemp -t pi-review.XXXXXX)
-# Ensure cleanup on exit
-trap 'rm -f "$TEMP_PATCH"' EXIT
-
-echo "$DIFF" > "$TEMP_PATCH"
-
-# Invoke pi in non-interactive mode
-pi -p --model "$MODEL" \
-   --system-prompt "$SYSTEM_PROMPT" \
-   @"$TEMP_PATCH" \
-   "Review the attached code changes. Focus on providing actionable, high-context feedback for another AI agent."
+nono run "${NONO_ARGS[@]}" -- pi "${PI_ARGS[@]}" "$USER_PROMPT" \
+  | jq --unbuffered -r --argjson verbose "$VERBOSE" '
+      if .type == "message_start" and .message.role == "assistant" then
+        "Thinking..."
+      elif .type == "tool_execution_start" then
+        if $verbose == 1 then
+          "→ \(.toolName)(\(.args | tostring | .[0:200]))"
+        else
+          "→ \(.toolName)"
+        end
+      elif .type == "tool_execution_end" then
+        if .isError then
+          "  ✗ \(.result | tostring | .[0:300])"
+        else
+          "  ✓"
+        end
+      elif .type == "message_end" and .message.role == "assistant" then
+        .message.content
+        | map(
+            if .type == "thinking" then
+              if $verbose == 1 then
+                "--- thinking ---\n\(.thinking)\n--- end thinking ---"
+              else empty end
+            elif .type == "text" then
+              "\(.text)"
+            else empty end
+          )
+        | .[]
+      else empty end
+    ' \
+  | awk '
+      BEGIN { stdout = 1 }
+      /^\x01/ { stdout = 0; sub(/^\x01/, "") }
+      /^\x02/ { stdout = 1; sub(/^\x02/, "") }
+      {
+        if (stdout) { print; fflush() }
+        else        { print > "/dev/stderr"; fflush("/dev/stderr") }
+      }
+    '

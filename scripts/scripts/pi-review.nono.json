@@ -1,0 +1,21 @@
+{
+  "$schema": "https://nono.dev/schemas/nono-profile.schema.json",
+  "extends": "node-dev",
+  "meta": {
+    "name": "pi-review",
+    "description": "Sandbox for the pi-review code review script: read-only repo (workdir), read-only ~/.pi for pi's config, network restricted to the Gemini API, GEMINI_API_KEY forwarded from the parent shell."
+  },
+  "filesystem": {
+    "read": ["~/.pi"],
+    "read_file": ["~/.gitconfig"]
+  },
+  "network": {
+    "allow_domain": ["generativelanguage.googleapis.com"]
+  },
+  "env_credentials": {
+    "env://GEMINI_API_KEY": "GEMINI_API_KEY"
+  },
+  "workdir": {
+    "access": "read"
+  }
+}
