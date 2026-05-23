@@ -46,10 +46,7 @@ nvim ~/todo.txt
 % Claude
 
 # Claude
-claude
-
-# Claude with prompt
-claude -p "<prompt>"
+zsh -c 'claude; exec zsh'
 
 % Navi
 
