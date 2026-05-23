@@ -29,6 +29,7 @@ id_ed25519*
 .gnupg/
 .aws/
 .gcp/
+.antigravitycli
 
 # OS generated files
 .DS_Store
@@ -45,3 +46,4 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
