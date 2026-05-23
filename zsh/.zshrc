@@ -64,8 +64,6 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
 export PATH="$HOME/scripts:$PATH"
 
-# Created by `pipx` on 2024-03-06 17:18:01
-export PATH="$PATH:$HOME/.local/bin"
 # export PATH="/opt/homebrew/anaconda3/bin:$PATH"  # commented out by conda initialize
 
 # >>> conda initialize >>>
