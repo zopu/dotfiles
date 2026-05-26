@@ -23,6 +23,7 @@
       "Bash(gt log:*)",
       "Bash(gt ls:*)",
       "Bash(gt parent:*)",
+      "Bash(gt track:*)",
       "Bash(gt trunk:*)",
       "Bash(ls:*)",
       "Bash(lsof:*)",
@@ -38,18 +39,10 @@
       "Bash(python ~/.claude/skills/pr-review-auto/wait_for_reviews.py:*)",
       "mcp__context7__get-library-docs",
       "mcp__context7__resolve-library-id",
-      "mcp__playwright__playwright_get_visible_text",
-      "mcp__playwright__playwright_fill",
-      "mcp__playwright__playwright_press_key",
-      "mcp__playwright__playwright_navigate",
-      "mcp__playwright__playwright_screenshot",
-      "mcp__playwright__playwright_console_logs",
-      "mcp__playwright__playwright_evaluate",
-      "mcp__playwright__playwright_close",
       "WebFetch(domain:*)"
     ],
     "ask": [
-      "Bash(gt:*)"
+      "Bash(gt modify)"
     ],
     "defaultMode": "auto"
   },
@@ -76,9 +69,9 @@
   },
   "alwaysThinkingEnabled": true,
   "tui": "fullscreen",
+  "editorMode": "vim",
   "skipAutoPermissionPrompt": true,
   "feedbackSurveyState": {
     "lastShownTime": 1754086230997
-  },
-  "editorMode": "vim"
+  }
 }
