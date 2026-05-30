@@ -43,7 +43,12 @@ nvim ~/dotfiles/
 # Todo
 nvim ~/todo.txt
 
-% Claude
+% antigravity, agy, ai
+
+# agy
+zsh -c 'agy; exec zsh'
+
+% claude, ai
 
 # Claude
 zsh -c 'claude; exec zsh'
@@ -73,7 +78,7 @@ yazi-tmux-wrapper.sh
 # htop
 htop
 
-% claude, tmux
+% claude, tmux, ai
 
 # Claude Code Tmux Sessions
 claude-tmux.py
