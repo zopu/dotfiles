@@ -47,3 +47,5 @@ Thumbs.db
 *.swo
 *~
 
+# Build artefacts
+__pycache__/
