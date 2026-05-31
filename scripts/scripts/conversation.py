@@ -11,8 +11,13 @@ fresh output file inside the given output directory. The tools are sandboxed to
 that one file -- they take no path argument, so the model can shape its output
 however the prompt directs but cannot touch anything else.
 
+The model can optionally be given read-only access to a directory (via
+--read-dir). Those tools take a path argument, but every path is resolved and
+checked to stay inside the directory, so the model cannot read anything outside
+of it.
+
 Usage:
-    conversation.py <prompt-file> <output-dir>
+    conversation.py <prompt-file> <output-dir> [--read-dir <dir>]
 
 Requirements:
     - GEMINI_API_KEY must be set in the environment.
@@ -76,7 +81,96 @@ class OutputFile:
         return {"result": f"Replaced {count} occurrence(s)."}
 
 
-def build_tool() -> types.Tool:
+class ReadDir:
+    """A directory the model may read from, and nothing outside of it.
+
+    Tools take a path argument, but every path is resolved against the
+    directory root and rejected if it escapes (via symlinks, `..`, or absolute
+    paths), so sandboxing holds even though paths are model-controlled.
+    """
+
+    def __init__(self, root: Path):
+        self.root = root.resolve(strict=True)
+        if not self.root.is_dir():
+            raise NotADirectoryError(f"{self.root} is not a directory")
+
+    def _resolve(self, path: str) -> Path:
+        """Resolve a model-supplied path and confirm it stays under the root."""
+        candidate = (self.root / path).resolve()
+        if candidate != self.root and self.root not in candidate.parents:
+            raise PermissionError(f"Path is outside the readable directory: {path}")
+        return candidate
+
+    def list_dir(self, path: str = ".") -> dict:
+        target = self._resolve(path)
+        if not target.is_dir():
+            return {"error": f"Not a directory: {path}"}
+        entries = []
+        for child in sorted(target.iterdir()):
+            entries.append(child.name + ("/" if child.is_dir() else ""))
+        return {"result": entries}
+
+    def read_path(self, path: str) -> dict:
+        target = self._resolve(path)
+        if not target.is_file():
+            return {"error": f"Not a file: {path}"}
+        try:
+            return {"result": target.read_text()}
+        except UnicodeDecodeError:
+            return {"error": f"File is not valid UTF-8 text: {path}"}
+
+
+def build_tools(read_dir: "ReadDir | None") -> list[types.Tool]:
+    """Declare the tools exposed to the model.
+
+    Always includes the output-file editing tools. When a readable directory is
+    configured, also includes read-only directory tools.
+    """
+    tools = [build_output_tool()]
+    if read_dir is not None:
+        tools.append(build_read_dir_tool())
+    return tools
+
+
+def build_read_dir_tool() -> types.Tool:
+    """Declare the read-only directory tools exposed to the model."""
+    return types.Tool(
+        function_declarations=[
+            types.FunctionDeclaration(
+                name="list_dir",
+                description=(
+                    "List the entries of a directory within the readable directory. "
+                    "Directories are suffixed with '/'. Use '.' for the root."
+                ),
+                parameters_json_schema={
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string",
+                            "description": "Directory path relative to the readable directory root. Defaults to '.'.",
+                        }
+                    },
+                },
+            ),
+            types.FunctionDeclaration(
+                name="read_path",
+                description="Read and return the full contents of a file within the readable directory.",
+                parameters_json_schema={
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string",
+                            "description": "File path relative to the readable directory root.",
+                        }
+                    },
+                    "required": ["path"],
+                },
+            ),
+        ]
+    )
+
+
+def build_output_tool() -> types.Tool:
     """Declare the file-editing tools exposed to the model."""
     return types.Tool(
         function_declarations=[
@@ -136,11 +230,19 @@ def build_tool() -> types.Tool:
 
 
 class Conversation:
-    def __init__(self, model: str, voice: str, system_instruction: str, output: OutputFile):
+    def __init__(
+        self,
+        model: str,
+        voice: str,
+        system_instruction: str,
+        output: OutputFile,
+        read_dir: "ReadDir | None" = None,
+    ):
         self.model = model
         self.voice = voice
         self.system_instruction = system_instruction
         self.output = output
+        self.read_dir = read_dir
         self.session = None
         self.audio_in_queue: asyncio.Queue = asyncio.Queue()
         self.out_queue: asyncio.Queue = asyncio.Queue(maxsize=20)
@@ -155,6 +257,9 @@ class Conversation:
             "append_file": self.output.append_file,
             "replace_in_file": self.output.replace_in_file,
         }
+        if self.read_dir is not None:
+            self.dispatch["list_dir"] = self.read_dir.list_dir
+            self.dispatch["read_path"] = self.read_dir.read_path
 
     async def listen_audio(self):
         """Capture microphone audio and queue it for sending."""
@@ -262,10 +367,12 @@ class Conversation:
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=self.voice)
                 )
             ),
-            tools=[build_tool()],
+            tools=build_tools(self.read_dir),
         )
         print(f"Connecting to {self.model} (voice: {self.voice})...")
         print(f"Output file: {self.output.path}")
+        if self.read_dir is not None:
+            print(f"Readable directory: {self.read_dir.root}")
         try:
             async with (
                 client.aio.live.connect(model=self.model, config=config) as session,
@@ -287,6 +394,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("prompt_file", type=Path, help="Path to the system-prompt text file.")
     parser.add_argument("output_dir", type=Path, help="Directory in which to create the per-run output file.")
+    parser.add_argument(
+        "--read-dir",
+        type=Path,
+        default=None,
+        help="Directory the model may read from (read-only, sandboxed to this directory).",
+    )
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"Live model to use (default: {DEFAULT_MODEL}).")
     parser.add_argument("--voice", default=DEFAULT_VOICE, help=f"Prebuilt voice name (default: {DEFAULT_VOICE}).")
     return parser.parse_args()
@@ -300,6 +413,14 @@ def main() -> int:
         return 1
     system_instruction = args.prompt_file.read_text()
 
+    read_dir = None
+    if args.read_dir is not None:
+        try:
+            read_dir = ReadDir(args.read_dir)
+        except (FileNotFoundError, NotADirectoryError):
+            print(f"error: read directory not found: {args.read_dir}", file=sys.stderr)
+            return 1
+
     args.output_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     output = OutputFile(args.output_dir / f"conversation-{stamp}.md")
@@ -309,6 +430,7 @@ def main() -> int:
         voice=args.voice,
         system_instruction=system_instruction,
         output=output,
+        read_dir=read_dir,
     )
 
     try:
