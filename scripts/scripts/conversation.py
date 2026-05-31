@@ -11,6 +11,10 @@ fresh output file inside the given output directory. The tools are sandboxed to
 that one file -- they take no path argument, so the model can shape its output
 however the prompt directs but cannot touch anything else.
 
+Each run also writes a transcript file alongside the output file, capturing both
+sides of the spoken conversation as text and appending to it as the
+conversation unfolds.
+
 The model can optionally be given read-only access to a directory (via
 --read-dir). Those tools take a path argument, but every path is resolved and
 checked to stay inside the directory, so the model cannot read anything outside
@@ -39,7 +43,7 @@ from google import genai
 from google.genai import types
 
 DEFAULT_MODEL = "gemini-3.1-flash-live-preview"
-DEFAULT_VOICE = "Puck"
+DEFAULT_VOICE = "Charon"
 
 # Audio format expected by the Live API.
 FORMAT = pyaudio.paInt16
@@ -79,6 +83,31 @@ class OutputFile:
             return {"error": "String to replace was not found in the file."}
         self.path.write_text(text.replace(old, new))
         return {"result": f"Replaced {count} occurrence(s)."}
+
+
+class Transcript:
+    """An append-only text log of the spoken conversation.
+
+    Audio transcriptions arrive as a stream of small text fragments for each
+    speaker. We append fragments as they come so the file stays current even if
+    the run is interrupted, writing a `Speaker:` header only when the speaker
+    changes so consecutive fragments read as continuous turns.
+    """
+
+    def __init__(self, path: Path):
+        self.path = path
+        self.path.touch()
+        self._last_speaker: str | None = None
+
+    def add(self, speaker: str, text: str) -> None:
+        if not text:
+            return
+        with self.path.open("a") as f:
+            if speaker != self._last_speaker:
+                f.write("\n\n" if self._last_speaker is not None else "")
+                f.write(f"{speaker}: ")
+                self._last_speaker = speaker
+            f.write(text)
 
 
 class ReadDir:
@@ -236,12 +265,14 @@ class Conversation:
         voice: str,
         system_instruction: str,
         output: OutputFile,
+        transcript: Transcript,
         read_dir: "ReadDir | None" = None,
     ):
         self.model = model
         self.voice = voice
         self.system_instruction = system_instruction
         self.output = output
+        self.transcript = transcript
         self.read_dir = read_dir
         self.session = None
         self.audio_in_queue: asyncio.Queue = asyncio.Queue()
@@ -297,7 +328,9 @@ class Conversation:
             if self.model_speaking or not self.audio_in_queue.empty():
                 continue
             await self.session.send_realtime_input(
-                audio=types.Blob(data=data, mime_type=f"audio/pcm;rate={SEND_SAMPLE_RATE}")
+                audio=types.Blob(
+                    data=data, mime_type=f"audio/pcm;rate={SEND_SAMPLE_RATE}"
+                )
             )
 
     async def handle_tool_call(self, tool_call):
@@ -325,13 +358,18 @@ class Conversation:
         while True:
             turn = self.session.receive()
             async for response in turn:
+                server_content = response.server_content
+                if server_content:
+                    if it := server_content.input_transcription:
+                        self.transcript.add("You", it.text)
+                    if ot := server_content.output_transcription:
+                        self.transcript.add(self.voice, ot.text)
                 if data := response.data:
                     self.model_speaking = True
                     self.audio_in_queue.put_nowait(data)
                     continue
                 if response.tool_call:
                     await self.handle_tool_call(response.tool_call)
-                server_content = response.server_content
                 if server_content and server_content.interrupted:
                     # User barged in (only possible with headphones) -- drop any
                     # buffered playback.
@@ -361,16 +399,21 @@ class Conversation:
         client = genai.Client()
         config = types.LiveConnectConfig(
             response_modalities=["AUDIO"],
+            input_audio_transcription=types.AudioTranscriptionConfig(),
+            output_audio_transcription=types.AudioTranscriptionConfig(),
             system_instruction=self.system_instruction,
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=self.voice)
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=self.voice
+                    )
                 )
             ),
             tools=build_tools(self.read_dir),
         )
         print(f"Connecting to {self.model} (voice: {self.voice})...")
         print(f"Output file: {self.output.path}")
+        print(f"Transcript file: {self.transcript.path}")
         if self.read_dir is not None:
             print(f"Readable directory: {self.read_dir.root}")
         try:
@@ -392,16 +435,30 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run a live audio conversation with a Gemini Live model that can edit an output file.",
     )
-    parser.add_argument("prompt_file", type=Path, help="Path to the system-prompt text file.")
-    parser.add_argument("output_dir", type=Path, help="Directory in which to create the per-run output file.")
+    parser.add_argument(
+        "prompt_file", type=Path, help="Path to the system-prompt text file."
+    )
+    parser.add_argument(
+        "output_dir",
+        type=Path,
+        help="Directory in which to create the per-run output file.",
+    )
     parser.add_argument(
         "--read-dir",
         type=Path,
         default=None,
         help="Directory the model may read from (read-only, sandboxed to this directory).",
     )
-    parser.add_argument("--model", default=DEFAULT_MODEL, help=f"Live model to use (default: {DEFAULT_MODEL}).")
-    parser.add_argument("--voice", default=DEFAULT_VOICE, help=f"Prebuilt voice name (default: {DEFAULT_VOICE}).")
+    parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL,
+        help=f"Live model to use (default: {DEFAULT_MODEL}).",
+    )
+    parser.add_argument(
+        "--voice",
+        default=DEFAULT_VOICE,
+        help=f"Prebuilt voice name (default: {DEFAULT_VOICE}).",
+    )
     return parser.parse_args()
 
 
@@ -424,12 +481,14 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     output = OutputFile(args.output_dir / f"conversation-{stamp}.md")
+    transcript = Transcript(args.output_dir / f"transcript-{stamp}.md")
 
     conversation = Conversation(
         model=args.model,
         voice=args.voice,
         system_instruction=system_instruction,
         output=output,
+        transcript=transcript,
         read_dir=read_dir,
     )
 
@@ -441,7 +500,8 @@ def main() -> int:
         traceback.print_exception(eg)
         return 1
 
-    print(f"\nSaved to {output.path}")
+    print(f"\nSaved output to {output.path}")
+    print(f"Saved transcript to {transcript.path}")
     return 0
 
 
