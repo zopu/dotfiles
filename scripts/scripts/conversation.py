@@ -20,6 +20,10 @@ The model can optionally be given read-only access to a directory (via
 checked to stay inside the directory, so the model cannot read anything outside
 of it.
 
+On startup the model is also seeded with the contents of any AGENTS.md files
+found in that directory and its parents (most general first, most specific
+last), so it begins the conversation already aware of the project's context.
+
 Usage:
     conversation.py <prompt-file> <output-dir> [--read-dir <dir>]
 
@@ -44,6 +48,8 @@ from google.genai import types
 
 DEFAULT_MODEL = "gemini-3.1-flash-live-preview"
 DEFAULT_VOICE = "Charon"
+
+AGENTS_FILENAME = "AGENTS.md"
 
 # Audio format expected by the Live API.
 FORMAT = pyaudio.paInt16
@@ -147,6 +153,44 @@ class ReadDir:
             return {"result": target.read_text()}
         except UnicodeDecodeError:
             return {"error": f"File is not valid UTF-8 text: {path}"}
+
+
+def load_agents_context(start: Path) -> tuple[str, list[Path]]:
+    """Collect AGENTS.md files from `start` up through its parents.
+
+    Walks from `start` to the filesystem root, gathering any AGENTS.md files,
+    then orders them most-distant-ancestor first so the most specific (closest)
+    guidance appears last. Returns the formatted context block and the list of
+    files used (closest-last), both empty if none were found.
+    """
+    start = start.resolve()
+    files: list[Path] = []
+    for directory in [start, *start.parents]:
+        candidate = directory / AGENTS_FILENAME
+        if candidate.is_file():
+            files.append(candidate)
+    files.reverse()  # outermost first, closest last
+
+    sections = []
+    used: list[Path] = []
+    for path in files:
+        try:
+            text = path.read_text()
+        except (UnicodeDecodeError, OSError):
+            continue
+        sections.append(f"===== {path} =====\n{text}")
+        used.append(path)
+
+    if not sections:
+        return "", []
+
+    block = (
+        "The following is project context loaded from AGENTS.md files in the "
+        "working directory and its parents, ordered from the outermost directory "
+        "inward. Treat it as background information about the directory you are "
+        "working with.\n\n" + "\n\n".join(sections)
+    )
+    return block, used
 
 
 def build_tools(read_dir: "ReadDir | None") -> list[types.Tool]:
@@ -477,6 +521,16 @@ def main() -> int:
         except (FileNotFoundError, NotADirectoryError):
             print(f"error: read directory not found: {args.read_dir}", file=sys.stderr)
             return 1
+
+    # Seed the model with AGENTS.md context from the directory it works in
+    # (the readable directory if given, otherwise the current directory).
+    context_root = read_dir.root if read_dir is not None else Path.cwd()
+    agents_context, agents_files = load_agents_context(context_root)
+    if agents_context:
+        system_instruction = f"{system_instruction}\n\n{agents_context}"
+        print(f"Loaded {len(agents_files)} AGENTS.md file(s):")
+        for path in agents_files:
+            print(f"  - {path}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
