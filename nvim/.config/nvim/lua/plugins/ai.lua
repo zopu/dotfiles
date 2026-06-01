@@ -27,11 +27,8 @@ return {
           api_key_env = "MERCURY_AI_TOKEN",
         },
         keymaps = {
-          accept = false, -- Let blink manage <Tab>
-        },
-        blink = {
-          enabled = true,
-          ghost_text = false, -- Disable native ghost text
+          accept = "<C-y>",
+          partial_accept = false,
         },
       })
     end,
@@ -39,18 +36,9 @@ return {
   {
     "saghen/blink.cmp",
     opts = function(_, opts)
-      opts.sources = opts.sources or {}
-      opts.sources.default = opts.sources.default or {}
-      table.insert(opts.sources.default, "cursortab")
-      opts.sources.providers = opts.sources.providers or {}
-      opts.sources.providers.cursortab = {
-        module = "cursortab.blink",
-        name = "cursortab",
-        async = true,
-        timeout_ms = 5000,
-        score_offset = 200,
-      }
       opts.keymap = opts.keymap or {}
+      -- Let cursortab own <C-y> for accepting its ghost-text suggestions.
+      opts.keymap["<C-y>"] = {}
       opts.keymap["<Tab>"] = {
         function(cmp)
           if cmp.snippet_active() then
