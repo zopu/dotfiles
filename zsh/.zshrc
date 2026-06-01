@@ -33,7 +33,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Guard optional tools
 if command -v thefuck >/dev/null 2>&1; then
-  eval "$(thefuck --alias)"
+  alias fuck='eval $(thefuck $(fc -ln -1))'
 fi
 alias prv="~/scripts/pi-review"
 alias cpr="claude \"/pr-comment-auto\""
@@ -86,8 +86,15 @@ conda() {
 }
 # <<< conda initialize <<<
 
-export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense'
-source <(carapace _carapace)
+if command -v carapace >/dev/null 2>&1; then
+  export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense'
+  CARAPACE_CACHE="$HOME/.cache/carapace_cache.zsh"
+  if [[ ! -f "$CARAPACE_CACHE" ]]; then
+    mkdir -p "$(dirname "$CARAPACE_CACHE")"
+    carapace _carapace > "$CARAPACE_CACHE" 2>/dev/null
+  fi
+  source "$CARAPACE_CACHE"
+fi
 
 function y() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
