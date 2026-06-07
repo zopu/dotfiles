@@ -25,7 +25,8 @@ found in that directory and its parents (most general first, most specific
 last), so it begins the conversation already aware of the project's context.
 
 Usage:
-    conversation.py <prompt-file> <output-dir> [--read-dir <dir>]
+    conversation.py <prompt-file> <output-dir> [--read-dir <dir>] [--quiet]
+                    [--silence-ms <ms>]
 
 Requirements:
     - GEMINI_API_KEY must be set in the environment.
@@ -33,6 +34,9 @@ Requirements:
 
 Talk into your microphone; the model replies through your speakers. Press
 Ctrl-C to end the conversation.
+
+With --quiet the model still listens to your microphone, but replies in text
+printed to the terminal (and captured in the transcript) instead of speaking.
 """
 
 import argparse
@@ -311,6 +315,8 @@ class Conversation:
         output: OutputFile,
         transcript: Transcript,
         read_dir: "ReadDir | None" = None,
+        quiet: bool = False,
+        silence_ms: int | None = None,
     ):
         self.model = model
         self.voice = voice
@@ -318,6 +324,8 @@ class Conversation:
         self.output = output
         self.transcript = transcript
         self.read_dir = read_dir
+        self.quiet = quiet
+        self.silence_ms = silence_ms
         self.session = None
         self.audio_in_queue: asyncio.Queue = asyncio.Queue()
         self.out_queue: asyncio.Queue = asyncio.Queue(maxsize=20)
@@ -335,6 +343,11 @@ class Conversation:
         if self.read_dir is not None:
             self.dispatch["list_dir"] = self.read_dir.list_dir
             self.dispatch["read_path"] = self.read_dir.read_path
+
+    @property
+    def model_label(self) -> str:
+        """Transcript label for the model: its voice when speaking, else 'Model'."""
+        return "Model" if self.quiet else self.voice
 
     async def listen_audio(self):
         """Capture microphone audio and queue it for sending."""
@@ -397,7 +410,7 @@ class Conversation:
         await self.session.send_tool_response(function_responses=responses)
 
     async def receive_audio(self):
-        """Read model responses: play audio and run tool calls."""
+        """Read model responses: play audio (or print text) and run tool calls."""
         assert self.session is not None
         while True:
             turn = self.session.receive()
@@ -407,8 +420,14 @@ class Conversation:
                     if it := server_content.input_transcription:
                         self.transcript.add("You", it.text)
                     if ot := server_content.output_transcription:
-                        self.transcript.add(self.voice, ot.text)
+                        self.transcript.add(self.model_label, ot.text)
+                        if self.quiet:
+                            # Stream the reply's transcription to the terminal in
+                            # place of playing the audio.
+                            print(ot.text, end="", flush=True)
                 if data := response.data:
+                    if self.quiet:
+                        continue  # discard audio; we only want the text
                     self.model_speaking = True
                     self.audio_in_queue.put_nowait(data)
                     continue
@@ -421,6 +440,8 @@ class Conversation:
                         self.audio_in_queue.get_nowait()
                 if server_content and server_content.turn_complete:
                     self.model_speaking = False
+                    if self.quiet:
+                        print()  # end the model's turn on its own line
 
     async def play_audio(self):
         """Play queued model audio through the speakers."""
@@ -441,6 +462,9 @@ class Conversation:
 
     async def run(self):
         client = genai.Client()
+        # The Live model only supports AUDIO output, so we always request audio
+        # and transcription. In quiet mode we simply discard the audio and print
+        # its transcription instead of playing it.
         config = types.LiveConnectConfig(
             response_modalities=["AUDIO"],
             input_audio_transcription=types.AudioTranscriptionConfig(),
@@ -455,7 +479,18 @@ class Conversation:
             ),
             tools=build_tools(self.read_dir),
         )
-        print(f"Connecting to {self.model} (voice: {self.voice})...")
+        if self.silence_ms is not None:
+            # Shorten the silence the model waits for before ending your turn,
+            # so it responds more often (e.g. for dictation). END_SENSITIVITY_HIGH
+            # also makes it quicker to decide a turn is over.
+            config.realtime_input_config = types.RealtimeInputConfig(
+                automatic_activity_detection=types.AutomaticActivityDetection(
+                    end_of_speech_sensitivity=types.EndSensitivity.END_SENSITIVITY_HIGH,
+                    silence_duration_ms=self.silence_ms,
+                )
+            )
+        voice_desc = "text output" if self.quiet else f"voice: {self.voice}"
+        print(f"Connecting to {self.model} ({voice_desc})...")
         print(f"Output file: {self.output.path}")
         print(f"Transcript file: {self.transcript.path}")
         if self.read_dir is not None:
@@ -470,7 +505,8 @@ class Conversation:
                 tg.create_task(self.listen_audio())
                 tg.create_task(self.send_realtime())
                 tg.create_task(self.receive_audio())
-                tg.create_task(self.play_audio())
+                if not self.quiet:
+                    tg.create_task(self.play_audio())
         finally:
             self.pya.terminate()
 
@@ -502,6 +538,21 @@ def parse_args() -> argparse.Namespace:
         "--voice",
         default=DEFAULT_VOICE,
         help=f"Prebuilt voice name (default: {DEFAULT_VOICE}).",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Reply in text printed to the terminal instead of spoken audio.",
+    )
+    parser.add_argument(
+        "--silence-ms",
+        type=int,
+        default=None,
+        help=(
+            "Silence (in ms) to wait after you stop speaking before the model "
+            "responds. Lower values make it respond more often, e.g. for "
+            "dictation. Defaults to the model's built-in value if unset."
+        ),
     )
     return parser.parse_args()
 
@@ -544,6 +595,8 @@ def main() -> int:
         output=output,
         transcript=transcript,
         read_dir=read_dir,
+        quiet=args.quiet,
+        silence_ms=args.silence_ms,
     )
 
     try:
