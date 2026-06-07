@@ -13,6 +13,11 @@ lazydocker
 # LazyGit
 lazygit
 
+% git, diff, lazydiff
+
+# LazyDiff
+lazydiff
+
 % git, worktree, tgs
 
 # Git worktree session
