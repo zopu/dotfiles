@@ -46,7 +46,7 @@ This is a personal dotfiles repository for macOS development environment configu
 
 ### Environment Variables
 - Node.js managed via nvm
-- Python via Homebrew and conda
+- Python via Homebrew and uv
 - Go binaries in ~/go/bin
 - Custom scripts in ~/scripts
 - Bun package manager configured
