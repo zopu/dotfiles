@@ -23,11 +23,15 @@ tap "twilio/brew"
 
 # Core CLI tools
 brew "act"
+brew "ast-grep"       # Structural code search/lint/rewrite
 brew "awscli"
 brew "bat"            # Better cat with syntax highlighting
+brew "bottom"         # Process/system monitor (btm)
 brew "carapace"
+brew "blueutil"       # Get/set Bluetooth power & state (Corne BLE keyboard)
 brew "ccache"        # Compiler cache for faster rebuilds
 brew "cfn-lint"
+brew "clang-format"   # C/C++/JS/TS formatter
 brew "claude-squad"
 brew "cloudflared"
 brew "cmake"
@@ -46,6 +50,7 @@ brew "fd"
 brew "ffmpeg"
 brew "fzf"
 brew "gh"            # GitHub CLI
+brew "glow"           # Render markdown in the terminal
 brew "git"
 brew "git-delta"      # Better git diff viewer
 brew "gitleaks"
@@ -67,23 +72,27 @@ brew "libmagic"       # File type detection library
 brew "libpq"
 brew "mkcert"
 brew "mold"
+brew "mole"           # Deep clean & optimize macOS
 brew "mysql"
 brew "mysql-client"
 brew "nasm"
 brew "navi"
 brew "neovim"
 brew "ninja"          # Small build system
+brew "nushell"        # Modern structured shell
 brew "nvm"
 brew "pipx"           # Python app isolation
 brew "openocd"        # On-chip debugger
 brew "pnpm"
 brew "poetry"         # Python dependency management
 brew "pre-commit"
+brew "pulumi"         # Infrastructure as code
 brew "python@3.10"
 brew "python@3.11"
 brew "python-tk@3.11" # Tkinter for Python
 brew "qemu"
 brew "railway"
+brew "rclone"         # Rsync for cloud storage
 brew "ripgrep"
 brew "ruby"
 brew "sbcl"
@@ -99,19 +108,33 @@ brew "stylua"
 brew "thefuck"
 brew "tldr"           # Simplified man pages
 brew "tmux"
+brew "tmuxinator"     # Declarative tmux sessions
 brew "tokei"          # Code statistics
 brew "tpm"
 brew "tree"           # Directory tree visualization
+brew "tree-sitter"    # Incremental parsing library (Neovim)
+brew "tree-sitter-cli" # Grammar generator/CLI
 brew "wakeonlan"
 brew "watchexec"
 brew "websocat"
 brew "wget"
 brew "yamllint"       # YAML linting
 brew "yazi"
+brew "yq"             # YAML/JSON/XML processor
 brew "z80asm"
 brew "zellij"
 brew "zig"
 brew "zoxide"
+
+# AI agent tooling
+brew "beads"          # Memory upgrade for coding agents
+brew "nono"           # Capability-based sandbox shell for AI agents
+
+# Serial / embedded (pairs with openocd, qemu, dtc, nasm, z80asm)
+brew "picocom"        # Minimal serial terminal
+
+# Media
+brew "kew"            # Command-line music player (pulls in audio libs)
 
 # Specialized tap formulas
 brew "browsh-org/browsh/browsh"
@@ -141,17 +164,27 @@ cask "1password-cli"  # 1Password CLI
 cask "aerospace"      # Tiling window manager
 cask "alacritty"      # Alternative terminal
 cask "anaconda"       # Python distribution
+cask "bluetility"     # Bluetooth GUI utility
 cask "font-jetbrains-mono-nerd-font"
 cask "font-sf-mono-nerd-font"
 cask "font-hack-nerd-font"
 cask "font-sketchybar-app-font"
+cask "gcloud-cli"     # Google Cloud CLI
 cask "mediosz/tap/swipeaerospace"
+cask "rar"            # RAR archiver
 cask "sf-symbols"     # Apple Symbols
 cask "ghostty@tip"        # Terminal emulator
 cask "machoview"      # Mach-O binary viewer
 cask "temurin@17"     # Java 17 JDK
+cask "tigervnc"       # VNC client
 cask "wezterm"        # Terminal emulator
 cask "xld"            # Audio converter
+
+# Heavy / specialized (uncomment as needed on a given machine)
+# cask "mactex"                          # LaTeX distribution (~5GB)
+# cask "nordic-nrf-command-line-tools"   # nRF embedded debug tooling
+# cask "segger-jlink"                    # Segger J-Link tools
+# cask "pd"                              # Pure Data (audio programming)
 
 # Post-install tips (not executed by Brewfile):
 # - fzf: $(brew --prefix)/opt/fzf/install for key-bindings/completions

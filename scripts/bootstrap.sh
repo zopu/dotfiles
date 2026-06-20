@@ -58,6 +58,15 @@ else
   fi
 fi
 
+# --- Homebrew health check --------------------------------------------------
+
+# `brew doctor` exits non-zero on benign warnings, so it must never abort the
+# run. Worth a look after a Migration Assistant / OS transfer, which can leave
+# stale symlinks or arch-mismatched bottles behind. It only diagnoses — fixes
+# (e.g. `brew cleanup`, `brew reinstall <formula>`) are left to you.
+info "Running brew doctor (warnings here are often harmless)..."
+brew doctor || warn "brew doctor reported issues; review the output above before relying on this install."
+
 # --- Brew Bundle -------------------------------------------------------------
 
 if [[ "$OS" == "Linux" ]]; then
@@ -70,7 +79,7 @@ if [[ -f "$BREWFILE" ]]; then
   info "Updating Homebrew..."
   brew update
   info "Running brew bundle with $(basename "$BREWFILE")..."
-  brew bundle --file="$BREWFILE"
+  brew bundle --file="$BREWFILE" || warn "brew bundle had failures; continuing with the rest of bootstrap."
 else
   warn "No Brewfile at $BREWFILE. Skipping brew bundle."
 fi
@@ -121,25 +130,57 @@ for pkg in "${PACKAGES[@]}"; do
   fi
 
   info "Stowing $pkg -> $HOME"
-  stow --dir="$REPO_ROOT" --target="$HOME" --restow "$pkg"
+  stow --dir="$REPO_ROOT" --target="$HOME" --restow "$pkg" \
+    || warn "stow conflict on $pkg; resolve manually and re-run."
 done
 
 # --- Karabiner VirtualHIDDevice Daemon (macOS only) --------------------------
 
 if [[ "$OS" != "Linux" ]]; then
   KARABINER_PLIST="org.pqrs.Karabiner-VirtualHIDDevice-Daemon.plist"
+  KARABINER_LABEL="org.pqrs.Karabiner-VirtualHIDDevice-Daemon"
   KARABINER_SRC="$REPO_ROOT/kanata/$KARABINER_PLIST"
   KARABINER_DST="/Library/LaunchDaemons/$KARABINER_PLIST"
 
-  if [[ -f "$KARABINER_SRC" && ! -f "$KARABINER_DST" ]]; then
-    info "Installing Karabiner VirtualHIDDevice Daemon LaunchDaemon..."
-    sudo cp "$KARABINER_SRC" "$KARABINER_DST"
-    sudo launchctl load "$KARABINER_DST"
-    success "Karabiner VirtualHIDDevice Daemon installed and loaded."
-  elif [[ -f "$KARABINER_DST" ]]; then
-    info "Karabiner VirtualHIDDevice Daemon already installed."
-  else
+  if [[ ! -f "$KARABINER_SRC" ]]; then
     warn "Karabiner plist not found at $KARABINER_SRC. Skipping."
+  else
+    # Install the plist if missing.
+    if [[ ! -f "$KARABINER_DST" ]]; then
+      info "Installing Karabiner VirtualHIDDevice Daemon LaunchDaemon..."
+      sudo cp "$KARABINER_SRC" "$KARABINER_DST"
+    fi
+
+    # Bootstrap the service only if it isn't already loaded in the system
+    # domain. `bootstrap` is the modern replacement for the legacy `load`
+    # subcommand (Sequoia+); guarding on `print` keeps this idempotent.
+    if sudo launchctl print "system/$KARABINER_LABEL" >/dev/null 2>&1; then
+      info "Karabiner VirtualHIDDevice Daemon already loaded."
+    else
+      info "Bootstrapping Karabiner VirtualHIDDevice Daemon..."
+      sudo launchctl bootstrap system "$KARABINER_DST"
+      success "Karabiner VirtualHIDDevice Daemon installed and loaded."
+    fi
+  fi
+fi
+
+# --- nrfutil (Nordic Semiconductor CLI, macOS only) --------------------------
+
+if [[ "$OS" != "Linux" ]]; then
+  NRFUTIL_DST="$HOME/bin/nrfutil"
+  if [[ -x "$NRFUTIL_DST" ]]; then
+    info "nrfutil already installed at $NRFUTIL_DST."
+  else
+    info "Installing nrfutil to $NRFUTIL_DST..."
+    mkdir -p "$HOME/bin"
+    if curl -fsSL -o "$NRFUTIL_DST" \
+      "https://developer.nordicsemi.com/.pc-tools/nrfutil/universal-osx/nrfutil"; then
+      chmod +x "$NRFUTIL_DST"
+      success "nrfutil installed to $NRFUTIL_DST."
+    else
+      warn "Failed to download nrfutil. Skipping."
+      rm -f "$NRFUTIL_DST"
+    fi
   fi
 fi
 

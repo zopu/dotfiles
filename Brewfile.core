@@ -35,7 +35,14 @@ brew "tree"
 brew "websocat"
 brew "wget"
 brew "yamllint"
+brew "yq"             # YAML/JSON/XML processor (jq for YAML)
 brew "zoxide"
+
+# Newer CLI essentials
+brew "ast-grep"       # Structural code search/lint/rewrite
+brew "bottom"         # Process/system monitor (btm)
+brew "glow"           # Render markdown in the terminal
+brew "rclone"         # Rsync for cloud storage
 
 # Dev tools
 brew "carapace"
