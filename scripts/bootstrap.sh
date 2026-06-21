@@ -78,6 +78,11 @@ fi
 if [[ -f "$BREWFILE" ]]; then
   info "Updating Homebrew..."
   brew update
+  # After a Migration Assistant transfer, upgrade everything so any deps/leaves
+  # carried over from the old machine are refreshed (bundle only touches
+  # Brewfile-listed packages). Non-fatal so a single failure doesn't abort.
+  info "Upgrading installed formulae..."
+  brew upgrade || warn "brew upgrade had failures; continuing."
   info "Running brew bundle with $(basename "$BREWFILE")..."
   brew bundle --file="$BREWFILE" || warn "brew bundle had failures; continuing with the rest of bootstrap."
 else
