@@ -448,6 +448,15 @@ function icon_map() {
   "WhatsApp" | "‎WhatsApp")
     icon_result=":whats_app:"
     ;;
+  "Dia")
+    icon_result=":dia:"
+    ;;
+  "OrbStack")
+    icon_result=":orbstack:"
+    ;;
+  "Willow Voice")
+    icon_result=":mic_on:"
+    ;;
   *)
     icon_result=":default:"
     ;;
