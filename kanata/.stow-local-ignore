@@ -1,0 +1,4 @@
+# Stow only the .config tree into $HOME; keep these in the repo.
+launchd
+README\.md
+\.stow-local-ignore
