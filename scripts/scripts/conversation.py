@@ -24,9 +24,16 @@ On startup the model is also seeded with the contents of any AGENTS.md files
 found in that directory and its parents (most general first, most specific
 last), so it begins the conversation already aware of the project's context.
 
+A previous conversation can be continued with --continue, pointing at either
+file of an existing run's pair (conversation-<stamp>.md or
+transcript-<stamp>.md). The model then reuses that output file and appends to
+that transcript, and is told it is resuming so it can pull prior context back in
+via its read_file and read_transcript tools. When continuing, <output-dir> is
+optional since the directory is taken from the resumed files.
+
 Usage:
-    conversation.py <prompt-file> <output-dir> [--read-dir <dir>] [--quiet]
-                    [--silence-ms <ms>]
+    conversation.py <prompt-file> [<output-dir>] [--continue <file>]
+                    [--read-dir <dir>] [--quiet] [--silence-ms <ms>]
 
 Requirements:
     - GEMINI_API_KEY must be set in the environment.
@@ -54,6 +61,19 @@ DEFAULT_MODEL = "gemini-3.1-flash-live-preview"
 DEFAULT_VOICE = "Charon"
 
 AGENTS_FILENAME = "AGENTS.md"
+
+# Filename prefixes for the paired per-run files, used to resolve one from the
+# other when continuing a conversation.
+OUTPUT_PREFIX = "conversation-"
+TRANSCRIPT_PREFIX = "transcript-"
+
+CONTINUE_NOTICE = (
+    "You are continuing an earlier conversation, not starting fresh. Your output "
+    "file already contains the work from that conversation -- call read_file to "
+    "review it before making any changes. The spoken dialogue from the earlier "
+    "session is available via the read_transcript tool. Use both to recover "
+    "context, and greet the user as someone you have already been working with."
+)
 
 # Audio format expected by the Live API.
 FORMAT = pyaudio.paInt16
@@ -108,16 +128,21 @@ class Transcript:
         self.path = path
         self.path.touch()
         self._last_speaker: str | None = None
+        # True if the file already had content (e.g. when resuming), so the
+        # first new header is separated from the existing text by a blank line.
+        self._has_content = self.path.stat().st_size > 0
 
     def add(self, speaker: str, text: str) -> None:
         if not text:
             return
         with self.path.open("a") as f:
             if speaker != self._last_speaker:
-                f.write("\n\n" if self._last_speaker is not None else "")
+                if self._last_speaker is not None or self._has_content:
+                    f.write("\n\n")
                 f.write(f"{speaker}: ")
                 self._last_speaker = speaker
             f.write(text)
+            self._has_content = True
 
 
 class ReadDir:
@@ -197,16 +222,35 @@ def load_agents_context(start: Path) -> tuple[str, list[Path]]:
     return block, used
 
 
-def build_tools(read_dir: "ReadDir | None") -> list[types.Tool]:
+def build_tools(read_dir: "ReadDir | None", continuing: bool = False) -> list[types.Tool]:
     """Declare the tools exposed to the model.
 
     Always includes the output-file editing tools. When a readable directory is
-    configured, also includes read-only directory tools.
+    configured, also includes read-only directory tools. When resuming a prior
+    conversation, also includes the read_transcript tool.
     """
     tools = [build_output_tool()]
     if read_dir is not None:
         tools.append(build_read_dir_tool())
+    if continuing:
+        tools.append(build_continue_tool())
     return tools
+
+
+def build_continue_tool() -> types.Tool:
+    """Declare the transcript-reading tool exposed when resuming a conversation."""
+    return types.Tool(
+        function_declarations=[
+            types.FunctionDeclaration(
+                name="read_transcript",
+                description=(
+                    "Read and return the full transcript of the earlier spoken "
+                    "conversation you are continuing."
+                ),
+                parameters_json_schema={"type": "object", "properties": {}},
+            ),
+        ]
+    )
 
 
 def build_read_dir_tool() -> types.Tool:
@@ -317,6 +361,7 @@ class Conversation:
         read_dir: "ReadDir | None" = None,
         quiet: bool = False,
         silence_ms: int | None = None,
+        continuing: bool = False,
     ):
         self.model = model
         self.voice = voice
@@ -326,6 +371,7 @@ class Conversation:
         self.read_dir = read_dir
         self.quiet = quiet
         self.silence_ms = silence_ms
+        self.continuing = continuing
         self.session = None
         self.audio_in_queue: asyncio.Queue = asyncio.Queue()
         self.out_queue: asyncio.Queue = asyncio.Queue(maxsize=20)
@@ -343,11 +389,17 @@ class Conversation:
         if self.read_dir is not None:
             self.dispatch["list_dir"] = self.read_dir.list_dir
             self.dispatch["read_path"] = self.read_dir.read_path
+        if self.continuing:
+            self.dispatch["read_transcript"] = self.read_transcript
 
     @property
     def model_label(self) -> str:
         """Transcript label for the model: its voice when speaking, else 'Model'."""
         return "Model" if self.quiet else self.voice
+
+    def read_transcript(self) -> dict:
+        """Return the transcript of the conversation being continued."""
+        return {"result": self.transcript.path.read_text()}
 
     async def listen_audio(self):
         """Capture microphone audio and queue it for sending."""
@@ -477,7 +529,7 @@ class Conversation:
                     )
                 )
             ),
-            tools=build_tools(self.read_dir),
+            tools=build_tools(self.read_dir, self.continuing),
         )
         if self.silence_ms is not None:
             # Shorten the silence the model waits for before ending your turn,
@@ -521,7 +573,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "output_dir",
         type=Path,
-        help="Directory in which to create the per-run output file.",
+        nargs="?",
+        default=None,
+        help=(
+            "Directory in which to create the per-run output file. Optional when "
+            "--continue is given (the directory is taken from the resumed files)."
+        ),
+    )
+    parser.add_argument(
+        "--continue",
+        dest="continue_from",
+        type=Path,
+        default=None,
+        help=(
+            "Continue a previous conversation. Pass either file of an existing "
+            "run's pair (conversation-<stamp>.md or transcript-<stamp>.md); the "
+            "paired file is found by naming convention. The model reuses that "
+            "output file, appends to that transcript, and is told it is resuming."
+        ),
     )
     parser.add_argument(
         "--read-dir",
@@ -557,6 +626,34 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def resolve_continue_pair(path: Path) -> tuple[Path, Path]:
+    """Given one file of a run's pair, return (output_path, transcript_path).
+
+    `path` may be either the conversation output file or its transcript; the
+    other is derived from the shared `<stamp>` naming convention. Raises
+    ValueError if the name is not recognized, or FileNotFoundError if either the
+    given file or its derived sibling is missing.
+    """
+    if not path.is_file():
+        raise FileNotFoundError(f"file not found: {path}")
+    name = path.name
+    if name.startswith(OUTPUT_PREFIX):
+        output_path = path
+        transcript_path = path.with_name(TRANSCRIPT_PREFIX + name[len(OUTPUT_PREFIX):])
+    elif name.startswith(TRANSCRIPT_PREFIX):
+        transcript_path = path
+        output_path = path.with_name(OUTPUT_PREFIX + name[len(TRANSCRIPT_PREFIX):])
+    else:
+        raise ValueError(
+            f"not a recognized conversation/transcript file: {name} "
+            f"(expected a '{OUTPUT_PREFIX}*' or '{TRANSCRIPT_PREFIX}*' file)"
+        )
+    missing = output_path if path is transcript_path else transcript_path
+    if not missing.is_file():
+        raise FileNotFoundError(f"paired file not found: {missing}")
+    return output_path, transcript_path
+
+
 def main() -> int:
     args = parse_args()
 
@@ -583,10 +680,28 @@ def main() -> int:
         for path in agents_files:
             print(f"  - {path}")
 
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    output = OutputFile(args.output_dir / f"conversation-{stamp}.md")
-    transcript = Transcript(args.output_dir / f"transcript-{stamp}.md")
+    continuing = args.continue_from is not None
+    if continuing:
+        try:
+            output_path, transcript_path = resolve_continue_pair(args.continue_from)
+        except (FileNotFoundError, ValueError) as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        output = OutputFile(output_path)
+        transcript = Transcript(transcript_path)
+        system_instruction = f"{system_instruction}\n\n{CONTINUE_NOTICE}"
+        print(f"Continuing conversation from: {output.path}")
+    else:
+        if args.output_dir is None:
+            print(
+                "error: output_dir is required unless --continue is given",
+                file=sys.stderr,
+            )
+            return 1
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        output = OutputFile(args.output_dir / f"{OUTPUT_PREFIX}{stamp}.md")
+        transcript = Transcript(args.output_dir / f"{TRANSCRIPT_PREFIX}{stamp}.md")
 
     conversation = Conversation(
         model=args.model,
@@ -597,6 +712,7 @@ def main() -> int:
         read_dir=read_dir,
         quiet=args.quiet,
         silence_ms=args.silence_ms,
+        continuing=continuing,
     )
 
     try:
