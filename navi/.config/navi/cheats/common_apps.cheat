@@ -18,6 +18,11 @@ lazygit
 # LazyDiff
 lazydiff
 
+% git, diff, hunk
+
+# Hunk
+hunk diff
+
 % git, worktree, tgs
 
 # Git worktree session
