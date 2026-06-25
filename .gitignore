@@ -21,6 +21,9 @@ id_ed25519*
 *credential*
 *token*
 *.credentials
+rclone.conf
+gcs-sa.json
+*-sa.json
 
 # Personal configuration that shouldn't be shared
 .local/
