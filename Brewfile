@@ -12,14 +12,12 @@ tap "dart-lang/dart"
 tap "epk/epk"
 tap "FelixKratz/formulae"
 tap "gromgit/brewtils"
-tap "homebrew/services"
 tap "jesseduffield/lazydocker"
 tap "localstack/tap"
 tap "nikitabobko/tap"
 tap "oven-sh/bun"
 tap "sst/tap"
 tap "tako8ki/tap"
-tap "twilio/brew"
 
 # Core CLI tools
 brew "act"
@@ -99,14 +97,13 @@ brew "sbcl"
 brew "selene"
 brew "shellcheck"
 brew "shfmt"
-brew "spotify-tui"
 brew "spr"
 brew "sqlc"
 brew "starship"
 brew "stow"           # GNU Stow for dotfiles
 brew "stylua"
 brew "thefuck"
-brew "tldr"           # Simplified man pages
+brew "tlrc"           # Simplified man pages (maintained tldr client, provides `tldr`)
 brew "tmux"
 brew "tmuxinator"     # Declarative tmux sessions
 brew "tokei"          # Code statistics
@@ -147,7 +144,6 @@ brew "localstack/tap/localstack-cli"
 brew "oven-sh/bun/bun"
 brew "sst/tap/opencode"
 brew "tako8ki/tap/gobang"
-brew "twilio/brew/twilio"
 brew "gromgit/brewtils/taproom"
 
 # Additional runtimes & languages

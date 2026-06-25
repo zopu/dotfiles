@@ -29,7 +29,7 @@ brew "shellcheck"
 brew "shfmt"
 brew "starship"
 brew "stow"
-brew "tldr"
+brew "tlrc"           # Simplified man pages (maintained tldr client, provides `tldr`)
 brew "tokei"
 brew "tree"
 brew "websocat"
