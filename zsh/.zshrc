@@ -44,6 +44,7 @@ alias lg="lazygit"
 alias lzd='lazydocker'
 alias fk="fuck"
 alias t="tmux a"
+alias pwc="pwd | pbcopy"
 
 # opam configuration
 [[ ! -r $HOME/.opam/opam-init/init.zsh ]] || source $HOME/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
