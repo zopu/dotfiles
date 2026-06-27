@@ -457,6 +457,12 @@ function icon_map() {
   "Willow Voice")
     icon_result=":mic_on:"
     ;;
+  "Gemini")
+    icon_result=":gemini:"
+    ;;
+  "Osaurus")
+    icon_result=":ollama:"
+    ;;
   *)
     icon_result=":default:"
     ;;
