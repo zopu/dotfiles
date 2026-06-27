@@ -4,5 +4,8 @@
 sketchybar --reload
 
 % karabiner, kanata
-# Start Karabiner daemon
-sudo '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon' &
+# Kickstart kanata daemon
+sudo launchctl kickstart -k system/com.kanata
+
+# Hard restart kanata daemon
+sudo launchctl bootout system/com.kanata 2>/dev/null; sudo launchctl bootstrap system /Library/LaunchDaemons/com.kanata.plist
