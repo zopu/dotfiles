@@ -19,7 +19,7 @@ if [ "${apps}" != "" ]; then
   num_label="$(echo $workspace)"
   while read -r app; do
     app_trimmed="$(echo "$app" | xargs)"
-    icon_strip+=" $($CONFIG_DIR/plugins/icon_map_fn.sh "$app_trimmed")"
+    icon_strip+="$($CONFIG_DIR/plugins/icon_map_fn.sh "$app_trimmed")"
   done <<<"${apps}"
   sketchybar --set $NAME icon="$num_label" label="$icon_strip" icon.drawing=on label.drawing=on
 else
