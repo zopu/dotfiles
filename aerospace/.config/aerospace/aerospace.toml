@@ -186,3 +186,20 @@ run = 'move-node-to-workspace 7'
 [[on-window-detected]]
 if.app-id = 'com.valvesoftware.steam'
 run = 'move-node-to-workspace 8'
+
+# Dia browser profiles. Dia prefixes each window title with the profile name
+# ("Code:", "Personal:", "Ivi:"), so we match app-id AND the title prefix.
+[[on-window-detected]]
+if.app-id = 'company.thebrowser.dia'
+if.window-title-regex-substring = '^Code:'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'company.thebrowser.dia'
+if.window-title-regex-substring = '^Personal:'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'company.thebrowser.dia'
+if.window-title-regex-substring = '^Ivi:'
+run = 'move-node-to-workspace 8'
