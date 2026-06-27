@@ -42,7 +42,9 @@
       "WebFetch(domain:*)"
     ],
     "ask": [
-      "Bash(gt modify)"
+      "Bash(gt modify:*)",
+      "Bash(gt s:*)",
+      "Bash(gt submit:*)"
     ],
     "defaultMode": "auto"
   },
@@ -54,6 +56,17 @@
           {
             "type": "command",
             "command": "say 'BING BONG BING BONG'"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Read|Write|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/nono-hook.sh"
           }
         ]
       }
