@@ -13,16 +13,18 @@ fi
 
 workspace="$(echo $NAME | cut -d '.' -f 2)"
 apps="$(aerospace list-windows --workspace $workspace | cut -d '|' -f 2 | sort -u)"
-space="$(echo "$INFO" | jq -r '.space')"
-# apps="$(echo "$INFO" | jq -r '.apps | keys[]')"
+focused="$(aerospace list-workspaces --focused)"
 if [ "${apps}" != "" ]; then
-  num_label="$(echo $workspace)"
   while read -r app; do
     app_trimmed="$(echo "$app" | xargs)"
     icon_strip+="$($CONFIG_DIR/plugins/icon_map_fn.sh "$app_trimmed")"
   done <<<"${apps}"
-  sketchybar --set $NAME icon="$num_label" label="$icon_strip" icon.drawing=on label.drawing=on
+  sketchybar --set $NAME drawing=on icon="$workspace" label="$icon_strip" icon.drawing=on label.drawing=on
+elif [ "$workspace" = "$focused" ]; then
+  # Empty but focused: keep just the number visible as an indicator
+  sketchybar --set $NAME drawing=on icon="$workspace" label="" icon.drawing=on label.drawing=off
 else
-  sketchybar --set $NAME icon="" label="" icon.drawing=off label.drawing=off
+  # Empty and unfocused: collapse the whole item so it leaves no gap
+  sketchybar --set $NAME drawing=off
 fi
 
