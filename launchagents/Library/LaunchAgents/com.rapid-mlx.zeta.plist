@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.rapid-mlx.zeta</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/rapid-mlx</string>
+        <string>serve</string>
+        <string>gnukeith/zeta-2-mlx-4bit</string>
+        <string>--host</string>
+        <string>127.0.0.1</string>
+        <string>--port</string>
+        <string>8000</string>
+    </array>
+
+    <!-- Start at login and keep it alive (restart if it crashes or is killed). -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Give MLX/Metal time on a failed start before relaunching, so a
+         crash-loop doesn't hammer the GPU. -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <!-- Server workload: don't let macOS throttle it as a background task. -->
+    <key>ProcessType</key>
+    <string>Standard</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/mikeperrow/Library/Logs/rapid-mlx.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/mikeperrow/Library/Logs/rapid-mlx.log</string>
+</dict>
+</plist>
