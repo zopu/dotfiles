@@ -92,3 +92,8 @@ htop
 
 # Claude Code Tmux Sessions
 claude-tmux.py
+
+% karabiner, kanata
+
+# Kickstart kanata daemon
+sudo launchctl kickstart -k system/com.kanata

@@ -4,6 +4,7 @@
 sketchybar --reload
 
 % karabiner, kanata
+
 # Kickstart kanata daemon
 sudo launchctl kickstart -k system/com.kanata
 
