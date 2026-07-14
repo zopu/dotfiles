@@ -45,6 +45,8 @@ alias lzd='lazydocker'
 alias fk="fuck"
 alias t="tmux a"
 alias pwc="pwd | pbcopy"
+alias gauth="gcloud auth login --update-adc"
+alias unv="uv run nvim ."
 
 # opam configuration
 [[ ! -r $HOME/.opam/opam-init/init.zsh ]] || source $HOME/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
