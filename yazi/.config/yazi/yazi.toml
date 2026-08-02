@@ -1,4 +1,4 @@
-"$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
+#:schema https://yazi-rs.github.io/schemas/yazi.json
 
 [mgr]
 ratio = [1, 4, 3]
@@ -39,7 +39,7 @@ play = [
 
 [open]
 rules = [
-	{ name = "*/", use = "open" },
+	{ url = "*/", use = "open" },
 	{ mime = "text/*", use = "edit" },
 	{ mime = "image/*", use = "open" },
 	{ mime = "video/*", use = "play" },
