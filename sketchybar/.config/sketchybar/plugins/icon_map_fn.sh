@@ -463,6 +463,9 @@ function icon_map() {
   "Osaurus")
     icon_result=":ollama:"
     ;;
+  "WIP")
+    icon_result=":hammerspoon:"
+    ;;
   *)
     icon_result=":default:"
     ;;
