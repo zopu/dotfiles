@@ -6,7 +6,7 @@
 # Taps
 tap "jesseduffield/lazydocker"
 tap "oven-sh/bun"
-tap "sst/tap"
+tap "withgraphite/tap"
 
 # Core CLI
 brew "bat"
@@ -29,6 +29,7 @@ brew "shellcheck"
 brew "shfmt"
 brew "starship"
 brew "stow"
+brew "worktrunk"      # Git worktree manager (`wt`, shell init in .zshrc)
 brew "tlrc"           # Simplified man pages (maintained tldr client, provides `tldr`)
 brew "tokei"
 brew "tree"
@@ -74,4 +75,7 @@ brew "uv"
 # Specialized tap formulas
 brew "jesseduffield/lazydocker/lazydocker"
 brew "oven-sh/bun/bun"
-brew "sst/tap/opencode"
+brew "withgraphite/tap/graphite"  # Stacked PRs (`gt`, completions in .zshrc)
+
+# Moved to homebrew/core (was sst/tap/opencode)
+brew "opencode"
