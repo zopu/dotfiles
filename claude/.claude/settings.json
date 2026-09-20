@@ -58,6 +58,15 @@
             "command": "say 'BING BONG BING BONG'"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh Stop"
+          }
+        ]
       }
     ],
     "PostToolUseFailure": [
@@ -67,6 +76,72 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/nono-hook.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh SessionStart"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh UserPromptSubmit"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh PreToolUse"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh Notification"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh PermissionRequest"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh SessionEnd"
           }
         ]
       }
