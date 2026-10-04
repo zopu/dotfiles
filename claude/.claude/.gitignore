@@ -10,3 +10,6 @@ statsig/
 *.lock
 *.tmp
 *.log
+
+# Claude Code account-synced skills (installed at runtime)
+skills/synced/
