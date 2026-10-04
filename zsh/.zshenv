@@ -7,3 +7,9 @@ if [ -d /opt/homebrew ]; then
 elif [ -d /home/linuxbrew/.linuxbrew ]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
+
+# Rust (rustup)
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+# Flutter SDK (cloned checkout)
+[ -d "$HOME/code/flutter/flutter/bin" ] && export PATH="$HOME/code/flutter/flutter/bin:$PATH"
