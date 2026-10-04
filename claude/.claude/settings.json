@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "attribution": {
+    "sessionUrl": false
+  },
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
@@ -158,8 +161,12 @@
   "alwaysThinkingEnabled": true,
   "tui": "fullscreen",
   "editorMode": "vim",
+  "switchModelsOnFlag": false,
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "feedbackSurveyState": {
-    "lastShownTime": 1754086230997
+  "voiceEnabled": true,
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
   }
 }
