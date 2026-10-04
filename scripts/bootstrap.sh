@@ -91,71 +91,7 @@ fi
 
 # --- GNU Stow ---------------------------------------------------------------
 
-if ! command -v stow >/dev/null 2>&1; then
-  info "Installing stow..."
-  brew install stow
-fi
-
-# Platform-specific stow packages
-# Keep these lists in sync with the package directories at the repo root.
-# Deliberately NOT stowed: nas (repo-local rclone scripts, run in place) and
-# plans (repo notes, not config).
-if [[ "$OS" == "Linux" ]]; then
-  PACKAGES=(
-    claude
-    navi
-    nushell
-    nvim
-    opencode
-    scripts
-    starship
-    tmux
-    yazi
-    zsh
-  )
-else
-  PACKAGES=(
-    aerospace
-    claude
-    conda
-    ghostty
-    kanata
-    launchagents
-    navi
-    nushell
-    nvim
-    opencode
-    scripts
-    sketchybar
-    starship
-    tmux
-    wezterm
-    yazi
-    zsh
-  )
-fi
-
-# Back up existing .zshrc if it's a real file (not a symlink)
-if [[ -f "$HOME/.zshrc" && ! -L "$HOME/.zshrc" ]]; then
-  cp "$HOME/.zshrc" "$HOME/.zshrc.bak"
-  info "Copied existing ~/.zshrc to ~/.zshrc.bak"
-  rm "$HOME/.zshrc"
-fi
-
-for pkg in "${PACKAGES[@]}"; do
-  if [[ ! -d "$REPO_ROOT/$pkg" ]]; then
-    warn "Skipping $pkg (directory not found)"
-    continue
-  fi
-
-  # --ignore keeps Finder droppings from being stowed into $HOME (a stray
-  # package-root .DS_Store otherwise collides with ~/.DS_Store and, because
-  # stow aborts a package on its first conflict, silently blocks every other
-  # file in that package.
-  info "Stowing $pkg -> $HOME"
-  stow --dir="$REPO_ROOT" --target="$HOME" --restow --ignore='\.DS_Store' "$pkg" \
-    || warn "stow conflict on $pkg; resolve manually and re-run."
-done
+"$REPO_ROOT/scripts/stow.sh"
 
 # --- Karabiner VirtualHIDDevice Daemon (macOS only) --------------------------
 

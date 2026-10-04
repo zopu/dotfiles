@@ -1,0 +1,4 @@
+# Run in place from the repo; only scripts/ belongs in $HOME.
+bootstrap\.sh
+stow\.sh
+\.stow-local-ignore
