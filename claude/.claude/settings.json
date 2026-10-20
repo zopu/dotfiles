@@ -25,6 +25,8 @@
       "Bash(gt children:*)",
       "Bash(gt log:*)",
       "Bash(gt ls:*)",
+      "Bash(gt create:*)",
+      "Bash(gt modify:*)",
       "Bash(gt parent:*)",
       "Bash(gt track:*)",
       "Bash(gt trunk:*)",
@@ -45,12 +47,12 @@
       "WebFetch(domain:*)"
     ],
     "ask": [
-      "Bash(gt modify:*)",
       "Bash(gt s:*)",
       "Bash(gt submit:*)"
     ],
     "defaultMode": "auto"
   },
+  "model": "opus",
   "hooks": {
     "Stop": [
       {
@@ -156,17 +158,18 @@
     "pyright-lsp@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
-    "linear@claude-plugins-official": true
+    "linear@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
   "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
   "editorMode": "vim",
   "switchModelsOnFlag": false,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "voiceEnabled": true,
-  "voice": {
-    "enabled": true,
-    "mode": "hold"
-  }
+  "voiceEnabled": true
 }
