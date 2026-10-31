@@ -214,7 +214,7 @@ cask "gcloud-cli"     # Google Cloud CLI
 cask "mediosz/tap/swipeaerospace"
 cask "rar"            # RAR archiver
 cask "sf-symbols"     # Apple Symbols
-cask "ghostty@tip"        # Terminal emulator
+cask "ghostty"        # Terminal emulator
 cask "machoview"      # Mach-O binary viewer
 cask "temurin@17"     # Java 17 JDK
 cask "tigervnc"       # VNC client
