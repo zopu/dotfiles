@@ -57,6 +57,7 @@ else
     nushell
     nvim
     opencode
+    rex
     scripts
     sketchybar
     starship
