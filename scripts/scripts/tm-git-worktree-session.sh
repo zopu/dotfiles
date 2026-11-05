@@ -15,26 +15,6 @@ fi
 # Get the repository name from remote origin URL
 REPONAME=$(git config --get remote.origin.url | sed 's/.*\/\([^ ]*\/[^.]*\).*/\1/' | sed 's/.*\///')
 
-# Check if the repository is bare
-IS_BARE=$(git rev-parse --is-bare-repository)
-
-if [ "$IS_BARE" = "true" ]; then
-  # Bare repo: worktrees are subdirectories
-  BARE_ROOT=$(pwd)
-  WORKTREE_PATH="$BARE_ROOT/$WORKTREE_NAME"
-  MAIN_PATH="$BARE_ROOT/main"
-else
-  # Non-bare repo: worktrees go in sibling <repo>-wt folder
-  # Use --git-common-dir to find the main repo even when inside a worktree
-  # Convert to absolute path since git may return relative ".git" in main repo
-  GIT_COMMON_DIR=$(realpath "$(git rev-parse --git-common-dir)")
-  MAIN_PATH=$(dirname "$GIT_COMMON_DIR")
-  REPO_DIR=$(dirname "$MAIN_PATH")
-  REPO_BASENAME=$(basename "$MAIN_PATH")
-  WORKTREE_BASE="$REPO_DIR/${REPO_BASENAME}-wt"
-  WORKTREE_PATH="$WORKTREE_BASE/$WORKTREE_NAME"
-fi
-
 # Create session name format
 # If inside tmux, base the new session name on the current session name
 if [ -n "$TMUX" ]; then
@@ -45,38 +25,8 @@ else
 fi
 
 echo "Creating worktree $WORKTREE_NAME"
-
-if [ -d "$WORKTREE_PATH" ]; then
-  echo "Worktree already exists at $WORKTREE_PATH"
-else
-  echo "Worktree does not exist. Pulling and creating..."
-
-  # Pull latest changes from main branch
-  cd "$MAIN_PATH"
-  git pull
-
-  if [ "$IS_BARE" = "true" ]; then
-    cd "$BARE_ROOT"
-  else
-    # Ensure the worktree base directory exists
-    mkdir -p "$WORKTREE_BASE"
-  fi
-
-  git worktree add -b "$BRANCH" "$WORKTREE_PATH" main
-
-  # Symlink Claude local settings from main repo to new worktree
-  if [ -f "$MAIN_PATH/.claude/settings.local.json" ]; then
-    echo "Symlinking Claude local settings..."
-    mkdir -p "$WORKTREE_PATH/.claude"
-    ln -s "$MAIN_PATH/.claude/settings.local.json" "$WORKTREE_PATH/.claude/settings.local.json"
-  fi
-
-  # Symlink AGENTS.local.md from main repo to new worktree
-  if [ -f "$MAIN_PATH/AGENTS.local.md" ]; then
-    echo "Symlinking AGENTS.local.md..."
-    ln -s "$MAIN_PATH/AGENTS.local.md" "$WORKTREE_PATH/AGENTS.local.md"
-  fi
-fi
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+WORKTREE_PATH=$("$SCRIPT_DIR/git-worktree-ensure.sh" "$WORKTREE_NAME" "$BRANCH") || exit 1
 
 cd "$WORKTREE_PATH"
 
