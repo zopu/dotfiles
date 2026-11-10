@@ -13,10 +13,21 @@ fi
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-# Use the rex CLI that Rex puts in every pane, else whatever is on PATH.
-REX="${REX_BIN_DIR:+$REX_BIN_DIR/}rex"
-if ! command -v "$REX" >/dev/null 2>&1; then
-  echo "Error: the rex command was not found. Run this inside Rex or put rex on PATH."
+# Use the rex CLI that Rex puts in every pane, else one on PATH. Skip any other
+# program named rex (Perl's Rex deployment tool is on some servers): only the Rex
+# CLI has a whoami command.
+REX=""
+while IFS= read -r candidate; do
+  if [ -n "$candidate" ] && "$candidate" whoami --help >/dev/null 2>&1; then
+    REX=$candidate
+    break
+  fi
+done < <(
+  [ -n "$REX_BIN_DIR" ] && echo "$REX_BIN_DIR/rex"
+  type -ap rex
+)
+if [ -z "$REX" ]; then
+  echo "Error: the Rex CLI was not found. Run this inside Rex or put its rex on PATH."
   exit 1
 fi
 if ! command -v jq >/dev/null 2>&1; then

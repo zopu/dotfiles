@@ -39,6 +39,7 @@ if [[ "$OS" == "Linux" ]]; then
     nushell
     nvim
     opencode
+    rex
     scripts
     starship
     tmux
