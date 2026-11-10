@@ -1,0 +1,88 @@
+# Rex copy of ~/dotfiles/navi/.config/navi/cheats/common_apps.cheat, for the apps
+# picker in init.lua (ctrl+] n). Leaves out the tmux-only entries: the worktree
+# sessions are the "New/Open Worktree Session" palette entries in Rex.
+
+% shell 
+
+# New zsh session
+zsh
+
+% docker
+
+# LazyDocker
+lazydocker
+
+% git, lazygit, lg
+
+# LazyGit
+lazygit
+
+% git, diff, lazydiff
+
+# LazyDiff
+lazydiff
+
+% git, diff, hunk
+
+# Hunk
+hunk diff
+
+% git, github, gh, dash
+
+# gh-dash
+gh dash
+
+% git, github, gh, pr
+
+# Open PR for current branch in browser
+gh pr view --web
+
+% dotfiles
+
+# Neovim dotfiles
+nvim ~/dotfiles/
+
+% ToDo
+
+# Todo
+nvim ~/todo.txt
+
+% antigravity, agy, ai
+
+# agy
+zsh -c 'agy; exec zsh'
+
+% claude, ai
+
+# Claude
+zsh -c 'claude; exec zsh'
+
+% Navi
+
+# Navi
+zsh -c 'navi; exec zsh'
+
+% Neovim, nv, nvim
+
+# Neovim
+nvim . && exec zsh
+
+% Nushell
+
+# Nushell
+nu
+
+% Yazi
+
+# Yazi
+yazi-tmux-wrapper.sh
+
+% htop
+
+# htop
+htop
+
+% karabiner, kanata
+
+# Kickstart kanata daemon
+sudo launchctl kickstart -k system/com.kanata
