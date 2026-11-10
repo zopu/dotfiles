@@ -256,8 +256,9 @@ rex.action{
 -- tmux.conf:102 bind-key n: pick a command from the common apps cheat sheet with navi
 -- in a floating pane, and run it in a new tab in the focused pane's directory, like
 -- `tmux new-window -c "#{pane_current_path}" zsh -ci "{}"`. The sheet is the Rex copy
--- beside this file; it leaves out the tmux-only entries.
-local APPS_CHEAT = os.getenv("HOME") .. "/.config/rex/common_apps.cheat"
+-- beside this file, which leaves out the tmux-only entries. The popup's shell finds it,
+-- not this file: in a session on a Rex host the popup runs there, where this machine's
+-- $HOME means nothing. A host without the rex package stowed falls back to navi's copy.
 
 -- Run by the picker through the rex CLI, aimed at the app. client names that app again
 -- for the tab's return trip (see open_program_tab).
@@ -279,13 +280,15 @@ rex.action{
   description = "Pick a command from the common apps cheat sheet and run it in a new tab.",
   run = function(ctx, args)
     if not ctx.client_id then error("run this from the Rex app", 0) end
-    -- $1 = the app, $2 = the tab to return to, $3 = the cheat sheet.
+    -- $1 = the app, $2 = the tab to return to.
     open_popup(ctx, "Apps", { 0.1, 0.1, 0.8, 0.7 }, [[
-cmd=$(navi --path "$3" --print) || exit 0
+sheet="$HOME/.config/rex/common_apps.cheat"
+[ -e "$sheet" ] || sheet="$HOME/.config/navi/cheats/common_apps.cheat"
+cmd=$(navi --path "$sheet" --print) || exit 0
 [ -n "$cmd" ] || exit 0
 rex="${REX_BIN_DIR:+$REX_BIN_DIR/}rex"
 "$rex" -C "$1" do -s "$REX_SESSION" app_tab command="$cmd" cwd="$PWD" window_id="$2" client="$1" >/dev/null]],
-      ctx.client_id, block_window(ctx.block_id) or "", APPS_CHEAT)
+      ctx.client_id, block_window(ctx.block_id) or "")
   end,
 }
 -- kanata hold-w + n sends ctrl+] n
