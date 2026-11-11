@@ -69,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh Stop"
+            "command": "[ ! -x \"$HOME/.local/share/wip/wip-hook.sh\" ] || \"$HOME/.local/share/wip/wip-hook.sh\" Stop"
           }
         ]
       }
@@ -91,7 +91,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh SessionStart"
+            "command": "[ ! -x \"$HOME/.local/share/wip/wip-hook.sh\" ] || \"$HOME/.local/share/wip/wip-hook.sh\" SessionStart"
           }
         ]
       },
@@ -111,7 +111,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh UserPromptSubmit"
+            "command": "[ ! -x \"$HOME/.local/share/wip/wip-hook.sh\" ] || \"$HOME/.local/share/wip/wip-hook.sh\" UserPromptSubmit"
           }
         ]
       }
@@ -122,7 +122,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh PreToolUse"
+            "command": "[ ! -x \"$HOME/.local/share/wip/wip-hook.sh\" ] || \"$HOME/.local/share/wip/wip-hook.sh\" PreToolUse"
           }
         ]
       }
@@ -133,7 +133,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh Notification"
+            "command": "[ ! -x \"$HOME/.local/share/wip/wip-hook.sh\" ] || \"$HOME/.local/share/wip/wip-hook.sh\" Notification"
           }
         ]
       }
@@ -144,7 +144,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh PermissionRequest"
+            "command": "[ ! -x \"$HOME/.local/share/wip/wip-hook.sh\" ] || \"$HOME/.local/share/wip/wip-hook.sh\" PermissionRequest"
           }
         ]
       }
@@ -155,7 +155,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/mikeperrow/.local/share/wip/wip-hook.sh SessionEnd"
+            "command": "[ ! -x \"$HOME/.local/share/wip/wip-hook.sh\" ] || \"$HOME/.local/share/wip/wip-hook.sh\" SessionEnd"
           }
         ]
       }
