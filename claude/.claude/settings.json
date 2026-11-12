@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "say 'BING BONG BING BONG'"
+            "command": "! command -v say >/dev/null || say 'BING BONG BING BONG'"
           }
         ]
       },
